@@ -79,7 +79,7 @@ polyAsiteAssay <- setClass(
 #'
 #' @importFrom Seurat CreateAssayObject
 #' @importFrom Matrix rowSums colSums
-#' @importFrom GenomicRanges isDisjoint strand
+#' @importFrom GenomicRanges isDisjoint strand start end
 #' @concept assay
 #'
 #' @export

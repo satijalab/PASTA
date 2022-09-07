@@ -46,7 +46,7 @@ ReadPolyApipe <- function(counts_file, peaks_file = NULL, sep = c(":",",",":"), 
     if (verbose) {
       message("Reading peak file ...")
     }
-    the_peaks = readGFF( file = peaks_file)
+    the_peaks = readGFF( filepath = peaks_file)
     the_peaks$peak <- gsub( '"', '', the_peaks$peak)
     m = match( rownames(counts_matrix)  , the_peaks$peak )
     if ( length (which( is.na(m) == TRUE )) > 0 ){

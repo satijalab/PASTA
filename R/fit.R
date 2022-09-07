@@ -143,13 +143,14 @@ CalcPolyAResiduals <- function(object,
 #'
 #' @return Returns a data frame containing all peaks within genes that have multiple polyA sites that meet min.counts.background criteria
 #'
+#' @importFrom stats aggregate
 #' @concept residuals
 #'
 GetBackgroundDist <- function(object, features, background, assay,  min.counts.background) {
   # returns the pseudobulked background distribution for peaks specified
   # must contain gene information in meta data
 
-  nt.pseudo <- AverageExpression(object, features = features, assay = assay, slot="counts")
+  nt.pseudo <- AverageExpression(object, features = features, assays = assay, slot="counts")
   nt.pseudo <- data.frame(background = nt.pseudo[[1]][,background]) #subset just the background
   nt.pseudo$background <- nt.pseudo$background * sum(Idents(object)==background)
   nt.pseudo$gene <- paste0(object[[assay]]@meta.features[features, "symbol"], "_", object[[assay]]@meta.features[features, "strand"])
@@ -216,6 +217,7 @@ DirichletMultionmial <- function(gene.test, background.dist, m.background, gene.
 #' @return Returns a data frame containing all peaks within genes that have multiple polyA sites that meet min.counts.background criteria
 #'
 #' @importFrom dplyr left_join
+#' @importFrom stats quantile
 #' @concept residuals
 #'
 #'

@@ -37,6 +37,9 @@ FeaturesToGRanges <- function(regions, sep = c(":",",",":")) {
 #' third element separates end position and strand
 #'
 #' @return Returns a character vector
+#' 
+#' @importFrom GenomicRanges makeGRangesFromDataFrame strand start end
+#' 
 #' @export
 #' @concept utilities
 GRangesToString <- function(grange, sep = c(":", ",", ":")) {

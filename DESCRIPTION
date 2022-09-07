@@ -1,10 +1,10 @@
 Package: PASTA
 Title: PolyA Site usage adjusting for Transcript Abundance
 Version: 0.0.0.9000
-Authors@R: 
-    person("Madeline", "Kowalski", , "mkowalski@nygenome.org", role = c("aut", "cre"),
-           comment = c(ORCID = "YOUR-ORCID-ID"))
-    person("Harm", "Wessels", "hwessels@nygenome.org', role = c("aut", "cre"))
+Authors@R: c( 
+    person("Madeline", "Kowalski", , "mkowalski@nygenome.org", role = c("cre")),
+    person("Harm", "Wessels", "hwessels@nygenome.org", role = c("aut"))
+    )
 Description: What the package does (one paragraph).
 License: MIT + file LICENSE
 Encoding: UTF-8
@@ -16,7 +16,12 @@ Imports:
     rtracklayer,
     GenomicRanges,
     tidyr,
-    dplyr
-Depends: 
+    dplyr,
+    MGLM,
+    stats
+Depends:
+    R (>= 4.0.0),
+    methods, 
     Seurat (>= 4.0.0),
     Signac (>= 1.7.0)
+

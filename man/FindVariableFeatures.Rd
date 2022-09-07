@@ -4,10 +4,10 @@
 \alias{FindVariableFeatures.polyAsiteAssay}
 \title{Finds variable features based on polyA residuals}
 \usage{
-\method{FindVariableFeatures}{polyAsiteAssay}(object, nfeatures = 2000)
+\method{FindVariableFeatures}{polyAsiteAssay}(object, nfeatures = 2000, ...)
 }
 \arguments{
-\item{object}{Object containing a polyAres assay}
+\item{object}{Object containing a polyAsite assay}
 
 \item{nfeatures}{Number of features to select as top variable features.}
 }
