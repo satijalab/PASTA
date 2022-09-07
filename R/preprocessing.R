@@ -1,31 +1,31 @@
 
+#' The function reads in output from polyApipe and returns a count matrix
+#' @param counts.file file containing the counts from polyApipe in .tsv format
+#' @param peaks.file gff file that requires the seqid, start, end, and strand of each peak
+#' @param sep Separators
+#' @param filter.chromosomes If TRUE (default), only include main chromosomes. 
+#' @param min.features Cell must have at least this many feature to be included.
+#' @param min.cells A feature must be present in at least this manhy cells.
+#' @param verbose Print output.
+#'
+#' @return Returns count matrix with peaks in the form "chromosome:start,end:strand"
+#'  such as "10:100000560,100000859,100000560,100000859:+"
+#'
+#'
+#' @importFrom data.table fread
+#' @importFrom Matrix sparseMatrix colSums rowSums
+#' @importFrom rtracklayer readGFF
+#'
+#' @export
+#' @concept preprocessing
+ReadPolyApipe <- function(counts.file, peaks.file = NULL, sep = c(":",",",":"),
+                          filter.chromosomes = TRUE, min.features = NULL, min.cells = NULL , 
+                          verbose=TRUE)  {
 
-#peaks_file = "~/nygc_cluster_hwessels/Science2020_Arunalacham/PAS_polyA_peaks.gff"
-
-ReadPolyApipe <- function(counts_file, peaks_file = NULL, sep = c(":",",",":"), verbose=TRUE){
-  #' The function reads in output from polyApipe and returns a count matrix
-  #' @param counts_file file containing the counts from polyApipe in .tsv format
-  #' @param peaks_file gff file that requires the seqid, start, end, and strand of each peak
-  #' @param sep Separators
-  #'
-  #' @return Returns count matrix with peaks in the form "chromosome:start,end:strand"
-  #'  such as "10:100000560,100000859,100000560,100000859:+"
-  #'
-  #'
-  #' @importFrom data.table fread
-  #' @importFrom Matrix sparseMatrix
-  #' @importFrom rtracklayer readGFF
-  #'
-  #' @export
-  #' @concept preprocessing
-
-  # Not using read_tsv because of compression.(segfault.)
-  # from polyApipe https://github.com/MonashBioinformaticsPlatform/polyApipe/blob/master/polyApiper/R/data_loading.R
-  # NB: https://github.com/tidyverse/readr/issues/610
   if (verbose) {
     message("Reading count file ...")
   }
-  the_counts <- fread( file = counts_file, sep = "\t", header=TRUE,
+  the_counts <- fread( file = counts.file, sep = "\t", header=TRUE,
                                    showProgress = verbose,
                                    colClasses = c("factor","factor", "numeric"),
                                    nrows=-1)
@@ -42,22 +42,22 @@ ReadPolyApipe <- function(counts_file, peaks_file = NULL, sep = c(":",",",":"), 
   colnames(counts_matrix) <- levels(the_counts$cell)
   rownames(counts_matrix) <- levels(the_counts$peak)
 
-  if(! is.null( peaks_file )){
+  if(! is.null( peaks.file )){
     if (verbose) {
       message("Reading peak file ...")
     }
-    the_peaks = readGFF( filepath = peaks_file)
+    the_peaks = readGFF( filepath = peaks.file)
     the_peaks$peak <- gsub( '"', '', the_peaks$peak)
     m = match( rownames(counts_matrix)  , the_peaks$peak )
     if ( length (which( is.na(m) == TRUE )) > 0 ){
       if ( length(which( is.na(m) == TRUE )) == nrow(counts_matrix) ){
-        stop("Exiting. peaks_file does not match count_matrix rownames.")
+        stop("Exiting. peaks.file does not match count_matrix rownames.")
       }else{
         n = nrow(counts_matrix)
         del = which(! rownames(counts_matrix) %in% the_peaks$peak )
         idx = which( rownames(counts_matrix) %in% the_peaks$peak )
         counts_matrix = counts_matrix[idx,]
-        warning(paste0( "Removed ",length(del)," of ", n ," peaks not present in peak_file"))
+        warning(paste0( "Removed ",length(del)," of ", n ," peaks not present in peaks.file"))
         m = match( rownames(counts_matrix)  , the_peaks$peak ) #update
 
         the_peaks$newRN = apply( the_peaks[,c("seqid","start", "end", "strand")], 1,FUN =
@@ -71,8 +71,43 @@ ReadPolyApipe <- function(counts_file, peaks_file = NULL, sep = c(":",",",":"), 
       rownames(counts_matrix) <- the_peaks$newRN[m]
     }
   }
-
-  message("Loaded ", nrow(counts_matrix), " x ", ncol(counts_matrix), " matrix of counts")
+  
+  if(!is.null(min.features)){
+    rs = rowSums( counts_matrix > 0 )
+    del = which(rs < min.features)
+    keep = which(rs >= min.features)
+    counts_matrix = counts_matrix[keep,]
+    if (verbose) {
+      message(paste0("Removed ",length(del)," feature(s) covered in less than ",min.features," cells ..."))
+    }
+  }
+  
+  if(!is.null(min.cells)){
+    cs = colSums( counts_matrix > 0 )
+    del = which(cs < min.cells)
+    keep = which(cs >= min.cells)
+    counts_matrix = counts_matrix[,keep]
+    if (verbose) {
+      message(paste0("Removed ",length(del)," cell(s) with less than ",min.cells," features ..."))
+    }
+  }
+  
+  if (filter.chromosomes) {
+    chr = sapply(rownames(counts_matrix) , FUN = function(j) { strsplit(j,":")[[1]][1]})
+    accept = c(paste0("^",c(c(1:23),"X","Y","MT","M")),
+               paste0("chr",c(c(1:23),"X","Y","MT","M")))
+    del = grep(paste0(accept,collapse = "|"),chr, invert = T)
+    keep = grep(paste0(accept,collapse = "|"),chr, invert = F)
+    counts_matrix = counts_matrix[keep,]
+    if (verbose) {
+      message("Removed ", length(del), " entries falling on scaffolds")
+    }
+  }
+  
+  if (verbose) {
+  message("Loaded ", nrow(counts_matrix), " x ", ncol(counts_matrix), " feature by cell matrix")
+  }
+  
   return(counts_matrix)
 }
 

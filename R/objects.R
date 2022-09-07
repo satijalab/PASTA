@@ -84,7 +84,6 @@ polyAsiteAssay <- setClass(
 #'
 #' @export
 
-
 CreatePolyAsiteAssay <- function(
     counts,
     min.cells = 0,
