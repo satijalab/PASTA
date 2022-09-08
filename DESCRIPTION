@@ -18,7 +18,12 @@ Imports:
     tidyr,
     dplyr,
     MGLM,
-    stats
+    stats,
+    plyr,
+    GenomeInfoDb,
+    GenomicFeatures,
+    plyranges,
+    IRanges
 Depends:
     R (>= 4.0.0),
     methods, 

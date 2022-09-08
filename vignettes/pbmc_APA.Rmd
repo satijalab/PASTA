@@ -56,28 +56,27 @@ pA.assay = CreatePolyAsiteAssay(counts = pA.counts , genome = "hg38", fragments 
 
 ## Add polyA site assay to seurat object
 ```{r, include=FALSE}
-# Add polyAsite.Assay to object
+# intersect cells between polyA assay and RNA assay 
 cells = intersect( Cells(pbmc) , Cells(pA.assay))
 pbmc = subset(pbmc, cells = cells)
-pA.assay = as( subset(pA.assay, cells = cells) , "polyAsiteAssay")
+pA.assay = subset(pA.assay, cells = cells)
 pbmc[['pA']] <- pA.assay
-
-#for now read 
-
-############################################
-# Annotate Peaks
-############################################
-
-# Add annotation
-require("plyranges")
-require(GenomicFeatures)
-# Annotate from EnsDB is done similarly to polyApipe
-# In addition, we annotate tandem UTRs
-# S.sub = AnnotatePASfromEnsDB(object = S.sub, assay = "pA", species = "Homo sapiens", version = 100, hard_extension = 20, extension = 2000)
-# Annotate from GTF is motivated by and done similar to the Sierra package
-gtf.file = '~/data/CPAcore/Sierra/genes.gtf'
-BSgenome <- BSgenome.Hsapiens.UCSC.hg38::BSgenome.Hsapiens.UCSC.hg38
-
 ```
 
+## Annotate peaks 
+```{r annotate}
+# Annotate from EnsDB is done similarly to polyApipe
+# In addition, we annotate tandem UTRs
+gtf.file = '/brahms/shared/PASTA/GENCODE_hg38_v32_ensembl98.gtf'
+BSgenome <- BSgenome.Hsapiens.UCSC.hg38::BSgenome.Hsapiens.UCSC.hg38
+
+pbmc = AnnotatePASfromGTF(object = pbmc, assay = "pA", 
+                           transcriptDetails = TRUE, SequenceAnalysis = FALSE, PAS_Types = FALSE,
+                           genome = BSgenome, gtf.file = gtf.file,
+                           pA_motif_max_position = 60, AAA_motif_min_position = 10,
+                           polystretch_length = 10, max_mismatch = 1, 
+                           hard_extension = 10, extension = 2000 )
+```
+
+## Calculate polyA site redundancies
 

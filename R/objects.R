@@ -26,7 +26,7 @@
 polyAsiteAssay <- setClass(
   Class = "polyAsiteAssay",
   contains = "ChromatinAssay",
-  slots = list(scenter.scale.data = "matrix")
+  slots = list(center.scale.data = "matrix")
 )
 
 
@@ -144,7 +144,27 @@ CreatePolyAsiteAssay <- function(
   return(pA.assay)
 }
 
-
+#' Subset a polyA site assay 
+#' 
+#' @export
+#' @concept objects
+#' @method subset polyAsiteAssay
+#' 
+subset.polyAsiteAssay <- function(x, 
+                                  features = NULL, 
+                                  cells= NULL, ...) {
+  chromatin <- as(object = x, Class = 'ChromatinAssay')
+  chromatin <- subset(x = chromatin, cells = cells, features = features, ...)
+  chromatin <- as(object = chromatin, Class = 'polyAsiteAssay')
+  
+  # Do center.scale.data slot subsetting
+  if (dim(pA.assay@center.scale.data)[1] >0 ) {
+    center.scale <- GetAssayData(x, slot = "center.scale.data" )
+    center.scale <- center.scale[features, cells]
+    chromatin <- SetAssayData(chromatin, slot = "center.scale.data", new.data = center.scale)
+  }
+  return(chromatin)
+}
 
 ## S4 methods
 
@@ -192,6 +212,9 @@ setMethod(
     )
   }
 )
+
+
+
 
 
 
