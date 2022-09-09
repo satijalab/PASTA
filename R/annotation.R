@@ -1,12 +1,33 @@
 
 #' Annotate PAS from GTF file 
-#' @param object 
+#' @param object Seurat object
+#' @param assay Assay. Currently, only polyAsite.Assay supported.
+#' @param gtf.file Full path to GTF file used for annotation.
+#' @param genome BSGenome
+#' @param hard_extension Integer. 3\'UTR end coordinate shifting to downstream to aid annotation. Default 10.
+#' @param extension Integer. Extension of annotated 3\'UTR ends. Default 2000.
+#' @param annotationType annotationType. Default \"any\"
+#' @param transcriptDetails Logical. Annotation of gene sub annotation information.
+#' @param SequenceAnalysis Logical. Annotation of sequence features around 3\' ends, annotating for cleavage motifs, polyA strecthes and mispriming events.  .
+#' @param transcriptDetails Logical. Annotation of tandem UTRs with >1 polyAsite in the same last exon.
+#' @param pA_motif_max_position Integer. Search space for cleavage motif 5\' upstream to peak 3\' end. Default 60. 
+#' @param AAA_motif_min_position Integer. Search start for polyA stretch 3\' downstream to peak 3\' end. Default 10.
+#' @param polystretch_length Integer. Length of polyA stretch required for mispriming identification. Default 13.
+#' @param max_mismatch Integer. Number of allowed mismatches in polyA stretch. Default 1.#' 
 #' 
 #' @importFrom plyr mapvalues
-#' @importFrom GenomicRanges strand start end
+#' @importFrom BiocGenerics strand start end width
 #' @importFrom GenomeInfoDb renameSeqlevels genome seqlevelsStyle seqlevels
-#' @importFrom GenomicFeatures makeTxDbFromGFF
+#' @importFrom GenomicFeatures makeTxDbFromGFF intronsByTranscript fiveUTRsByTranscript threeUTRsByTranscript
+#' @importFrom GenomicRanges mcols
+#' @importFrom GenomeInfoDb seqinfo
+#' @importFrom GenomicAlignments findOverlaps
 #' @importFrom rtracklayer import
+#' @importFrom S4Vectors Rle queryHits subjectHits
+#' @importFrom methods slot
+#' @importFrom IRanges trim
+#' @importFrom plyranges mutate setdiff_ranges_directed join_overlap_inner_directed anchor_5p anchor_3p
+#' @importFrom dplyr select filter 
 #' @export
 #' 
 #' @concept annotation
@@ -18,7 +39,6 @@ AnnotatePASfromGTF <- function (
     genome = genome, 
     hard_extension = 10, 
     extension = 2000,
-    invert_strand = FALSE, 
     annotationType = "any", 
     transcriptDetails = TRUE,
     SequenceAnalysis = TRUE,
@@ -39,19 +59,23 @@ AnnotatePASfromGTF <- function (
     message(paste0("Setting default assay to ",assay))
   }
   ranges = slot(object = object[[assay]], name = "ranges")
+  # ranges = range(object[[assay]])
   if ( ! "strand" %in% colnames(object[[assay]]@meta.features)){
     object[[assay]] <- AddMetaData(object = object[[assay]] , metadata = as.character(strand(ranges)) , col.name = "strand")
   }
-  strand(ranges) <- Rle(object[[assay]][["strand"]][,1])
+  BiocGenerics::strand(ranges) <- S4Vectors::Rle(object[[assay]][["strand"]][,1])
   mcols(ranges)$rn <- rownames(object[[assay]])
   if ("M" %in% seqlevels(ranges)) {
     ranges <- renameSeqlevels(x = ranges , value = plyr::mapvalues(seqlevels(ranges), from = "M", to = "MT"))
   }
-  if ( table(strand(ranges))["*"] != 0){
-    stop("Exiting. Cannot annotate unstranded PAS. Please remove unstranded PAS.")
-  }
+  if (  "*" %in% unique(strand(ranges)) ){
+    print(table(strand(ranges)))
+    if( table(strand(ranges))["*"] != 0 ){
+      stop("Exiting. Cannot annotate unstranded PAS. Please remove unstranded PAS.")
+    }
+  } 
   gtf_gr <- import(gtf.file)
-  gtf_TxDb <- makeTxDbFromGFF(gtf.file, format = "gtf")
+  gtf_TxDb <- suppressWarnings(makeTxDbFromGFF(gtf.file, format = "gtf"))
   if( length(unique(genome(object[[assay]]))) == 0 ){
     stop("Exiting. No genome information provided in polyAsiteAssay.")
   }
@@ -81,7 +105,7 @@ AnnotatePASfromGTF <- function (
   # Modified from Sierra package
   annot.df <- annotate_gr_from_gtf(gr = ranges, gtf_gr = gtf_gr, 
                                    gtf_TxDb = gtf_TxDb, genome = genome, hard_extension = hard_extension, extension = extension,  
-                                   invert_strand = invert_strand, annotationType = annotationType, transcriptDetails = transcriptDetails, 
+                                   annotationType = annotationType, transcriptDetails = transcriptDetails, 
                                    SequenceAnalysis = SequenceAnalysis, PAS_Types = PAS_Types,
                                    pA_motif_max_position = pA_motif_max_position, AAA_motif_min_position = AAA_motif_min_position,
                                    polystretch_length = polystretch_length, max_mismatch = max_mismatch)
@@ -144,7 +168,7 @@ AnnotatePASfromGTF <- function (
 
 
 annotate_gr_from_gtf = function(gr, gtf_gr = NULL, gtf_TxDb, genome = NULL, 
-                                hard_extension = 10, extension = 2000, invert_strand = FALSE,
+                                hard_extension = 10, extension = 2000, 
                                 annotationType = "any", transcriptDetails = TRUE,
                                 SequenceAnalysis = TRUE, PAS_Types = FALSE,
                                 pA_motif_max_position = 60, AAA_motif_min_position = 10, 
@@ -154,17 +178,17 @@ annotate_gr_from_gtf = function(gr, gtf_gr = NULL, gtf_TxDb, genome = NULL,
     warning("No gtf file provided.\n")
     return(NULL)
   }
-  if (invert_strand) {
-    gr <- invertStrand(gr)
+  if( seqlevelsStyle(gr) == "UCSC"){
+    mcols(gtf_gr) <- mcols(gtf_gr)[c("type", "gene_id", "gene_name","gene_type")]
+    colnames(mcols(gtf_gr))[grep( "gene_type" , colnames(mcols(gtf_gr)))] <- "gene_biotype"
+  }else{
+    mcols(gtf_gr) <- mcols(gtf_gr)[c("type", "gene_id", "gene_name","gene_biotype")]
   }
-  GenomicRanges::mcols(gtf_gr) <- GenomicRanges::mcols(gtf_gr)[c("type", "gene_id", "gene_name","gene_biotype")]
-  if (length(intersect(GenomeInfoDb::seqlevels(gr), GenomeInfoDb::seqlevels(gtf_gr))) == 0) {
-    warning("Exiting. Genome anotation information does not match.\nseqlevelsStyle set to \"Ensembl\".")
-    seqlevelsStyle(gr) <- "Ensembl"
-    seqlevelsStyle(gtf_gr) <- "Ensembl"
+  if (length(intersect(seqlevels(gr), seqlevels(gtf_gr))) == 0) {
+    stop("Exiting. Ranges anotation information does not match GTF.")
   }
-  if (length(grep(pattern = "type", x = colnames(as.data.frame(gtf_gr)))) == 0) {
-    message("Annotation reference does not have a type field. This field is used\nto extract gene, transcript, exon, UTR information. Cannot continue...\n")
+  if (length(grep(pattern = "type", x = colnames(mcols(gtf_gr)))) == 0) {
+    stop("Exiting. Annotation reference does not have a type field. This field is used\nto extract gene, transcript, exon, UTR information. Cannot continue...\n")
     return(NULL)
   }
   listed_annotations <- names(table(gtf_gr$type))
@@ -172,22 +196,22 @@ annotate_gr_from_gtf = function(gr, gtf_gr = NULL, gtf_TxDb, genome = NULL,
     genes_gr <- gtf_gr[gtf_gr$type == "gene"]
   }
   else {
-    message("Reference has no recognised labels to annotate. Cannot continue... \n")
+    stop("Exiting. Reference has no recognised gene label to annotate. Cannot continue... \n")
     return(NULL)
   }
   # map extensions to genes
   seq_ranges <- seqinfo(genome) %>% as("GRanges")
   seq_stranded_ranges <- c(
-    plyranges::mutate(seq_ranges, strand = "+"),
-    plyranges::mutate(seq_ranges, strand = "-"))
+    mutate(seq_ranges, strand = "+"),
+    mutate(seq_ranges, strand = "-"))
   # get gaps not covered by gene features
-  gaps_gr <- suppressWarnings(plyranges::setdiff_ranges_directed(seq_stranded_ranges, genes_gr))
+  gaps_gr <- suppressWarnings(setdiff_ranges_directed(seq_stranded_ranges, genes_gr))
   
   # get transcript extensions
   extensions_gr <- gaps_gr %>%
-    plyranges::join_overlap_inner_directed(flank_downstream(genes_gr,1)) %>%
-    plyranges::anchor_5p() %>%
-    plyranges::mutate(width=pmin(width, extension))
+    join_overlap_inner_directed(flank_downstream(genes_gr,1)) %>%
+    anchor_5p() %>%
+    mutate(width=pmin(width, extension))
   
   backup.gr = gr
   # mutate ranges to single nt anchored on 3'end to improve annotation of transcript 3'ends
@@ -195,20 +219,19 @@ annotate_gr_from_gtf = function(gr, gtf_gr = NULL, gtf_TxDb, genome = NULL,
   # instead of extending all reference ranges by the value of hard_extension, 
   # we shift the end coordinate of the query gr by hard_extension towards its 5'end
   if(hard_extension != 0){
-    gr = gr %>% plyranges::anchor_3p() %>% plyranges::mutate(width=1) %>% shift_upstream(shift = hard_extension) %>% IRanges::trim()
+    gr = gr %>% anchor_3p() %>% mutate(width=1) %>% shift_upstream(shift = hard_extension) %>% trim()
   } else{
-    gr = gr %>% plyranges::anchor_3p() %>% plyranges::mutate(width=1) %>% IRanges::trim()
+    gr = gr %>% anchor_3p() %>% mutate(width=1) %>% trim()
   }
   
   annotate_info <- gene_Labels(gr = gr, reference_gr = genes_gr, annotationType = annotationType)
   extension_info <- gene_Labels(gr = gr, reference_gr = extensions_gr, annotationType = annotationType)
   if (is.null(annotate_info)) {
-    warning("tbd")
-    return(NULL)
+    stop("Exiting. tbd")
   }
   
   df <- as.data.frame(backup.gr)
-  df$symbol <- ""
+  df$symbol <- NA
   df$symbol[annotate_info$idx_to_annotate] <- annotate_info$identified_gene_symbols
   if (extension > 0){
     df$symbol[extension_info$idx_to_annotate] <- extension_info$identified_gene_symbols
@@ -222,7 +245,7 @@ annotate_gr_from_gtf = function(gr, gtf_gr = NULL, gtf_TxDb, genome = NULL,
   
   if (transcriptDetails) {
     
-    genes_gr <- genes_gr %>% plyranges::mutate(gene_strand = strand)
+    genes_gr <- genes_gr %>% mutate(gene_strand = strand)
     
     db_trans <- transcriptsBy(gtf_TxDb) %>%
       delist("gene_id") %>%
@@ -233,57 +256,57 @@ annotate_gr_from_gtf = function(gr, gtf_gr = NULL, gtf_TxDb, genome = NULL,
     
     
     cat("\nAnnotating 3'UTRs")
-    df$UTR3 <- ""
-    UTR_3_GR <- GenomicFeatures::threeUTRsByTranscript(gtf_TxDb, use.names = TRUE) %>%
+    df$UTR3 <- FALSE
+    UTR_3_GR <- threeUTRsByTranscript(gtf_TxDb, use.names = TRUE) %>%
       delist("tx_name") %>%
       plyranges::select(tx_name) %>%
       left_join_mcols(db_trans, "tx_name")
-    all_UTR_3_hits <- GenomicAlignments::findOverlaps(gr,UTR_3_GR, type = annotationType)
-    idx_to_annotate_3UTR <- S4Vectors::queryHits(all_UTR_3_hits)
-    df$UTR3[idx_to_annotate_3UTR] <- "YES"
+    all_UTR_3_hits <- findOverlaps(gr,UTR_3_GR, type = annotationType)
+    idx_to_annotate_3UTR <- queryHits(all_UTR_3_hits)
+    df$UTR3[idx_to_annotate_3UTR] <- TRUE
     
     if (extension > 0){
       cat("\nAnnotating 3'UTR extensions")
       extensions_gr <- gaps_gr %>%
-        plyranges::join_overlap_inner_directed(flank_downstream(UTR_3_GR,1)) %>%
-        plyranges::anchor_5p() %>%
-        plyranges::mutate(width=pmin(width, extension))
-      all_UTR3_extension_hits <- GenomicAlignments::findOverlaps(gr,extensions_gr, type = annotationType)
-      idx_to_annotate_3UTRextension <- S4Vectors::queryHits(all_UTR3_extension_hits)
-      df$UTR3_extension <- ""
-      df$UTR3_extension[idx_to_annotate_3UTRextension] <- "YES"
+        join_overlap_inner_directed(flank_downstream(UTR_3_GR,1)) %>%
+        anchor_5p() %>%
+        mutate(width=pmin(width, extension))
+      all_UTR3_extension_hits <- findOverlaps(gr,extensions_gr, type = annotationType)
+      idx_to_annotate_3UTRextension <- queryHits(all_UTR3_extension_hits)
+      df$UTR3_extension <- FALSE
+      df$UTR3_extension[idx_to_annotate_3UTRextension] <- TRUE
     }
     
     
     cat("\nAnnotating 5'UTRs")
-    df$UTR5 <- ""
-    UTR_5_GR <- GenomicFeatures::fiveUTRsByTranscript(gtf_TxDb)
-    all_UTR_5_hits <- GenomicAlignments::findOverlaps(gr, UTR_5_GR, type = annotationType)
-    identified_5UTRs <- UTR_5_GR[S4Vectors::subjectHits(all_UTR_5_hits)]$exon_id
-    idx_to_annotate_5UTR <- S4Vectors::queryHits(all_UTR_5_hits)
+    df$UTR5 <- FALSE
+    UTR_5_GR <- fiveUTRsByTranscript(gtf_TxDb)
+    all_UTR_5_hits <- findOverlaps(gr, UTR_5_GR, type = annotationType)
+    identified_5UTRs <- UTR_5_GR[subjectHits(all_UTR_5_hits)]$exon_id
+    idx_to_annotate_5UTR <- queryHits(all_UTR_5_hits)
+    df$UTR5[idx_to_annotate_5UTR] <- TRUE
     
-    df$UTR5[idx_to_annotate_5UTR] <- "YES"
     cat("\nAnnotating introns")
-    df$intron <- ""
-    introns_GR <- GenomicFeatures::intronsByTranscript(gtf_TxDb)
-    all_intron_hits <- GenomicAlignments::findOverlaps(gr, introns_GR, type = annotationType)
-    identified_introns <- introns_GR[S4Vectors::subjectHits(all_intron_hits)]
-    idx_to_annotate_introns <- S4Vectors::queryHits(all_intron_hits)
+    df$intron <- FALSE
+    introns_GR <- intronsByTranscript(gtf_TxDb)
+    all_intron_hits <- findOverlaps(gr, introns_GR, type = annotationType)
+    identified_introns <- introns_GR[subjectHits(all_intron_hits)]
+    idx_to_annotate_introns <- queryHits(all_intron_hits)
+    df$intron[idx_to_annotate_introns] <- TRUE
     
-    df$intron[idx_to_annotate_introns] <- "YES"
     cat("\nAnnotating exons")
     my_exons <- gtf_gr[gtf_gr$type == "exon"]
-    all_exon_hits <- GenomicAlignments::findOverlaps(gr, my_exons, type = annotationType)
-    idx_to_annotate_exons <- S4Vectors::queryHits(all_exon_hits)
-    df$exon <- ""
+    all_exon_hits <- findOverlaps(gr, my_exons, type = annotationType)
+    idx_to_annotate_exons <- queryHits(all_exon_hits)
+    df$exon <- FALSE
+    df$exon[idx_to_annotate_exons] <- TRUE
     
-    df$exon[idx_to_annotate_exons] <- "YES"
-    cat("\nAnnotating CDS")
+    cat("\nAnnotating CDS\n")
     my_CDS <- gtf_gr[gtf_gr$type == "CDS"]
-    all_CDS_hits <- GenomicAlignments::findOverlaps(gr,  my_CDS, type = annotationType)
-    idx_to_annotate_CDS <- S4Vectors::queryHits(all_CDS_hits)
-    df$CDS <- ""
-    df$CDS[idx_to_annotate_CDS] <- "YES"
+    all_CDS_hits <- findOverlaps(gr,  my_CDS, type = annotationType)
+    idx_to_annotate_CDS <- queryHits(all_CDS_hits)
+    df$CDS <- FALSE
+    df$CDS[idx_to_annotate_CDS] <- TRUE
   }
   
   
@@ -350,6 +373,7 @@ annotate_gr_from_gtf = function(gr, gtf_gr = NULL, gtf_TxDb, genome = NULL,
   if(PAS_Types){
     
     cat("\nCreate tandem 3'UTR reference from GTF (~10min)")
+    
     tandem.gr = MakeTandemUTRReferenceFromGTF(txdb = gtf_TxDb, genes_gr = genes_gr, gaps_gr = gaps_gr , extension = extension )
     
     # annotate PAS by overlapping
@@ -424,6 +448,7 @@ delist <- function(grl, id_col) {
 
 MakeTandemUTRReferenceFromGTF = function(txdb = gtf_TxDb, genes_gr = NULL, gaps_gr = NULL , extension = 0 ){
   
+  
   genes_gr <- genes_gr %>% plyranges::mutate(gene_strand = strand)
   
   db_trans <- transcriptsBy(txdb) %>%
@@ -432,6 +457,7 @@ MakeTandemUTRReferenceFromGTF = function(txdb = gtf_TxDb, genes_gr = NULL, gaps_
     left_join_mcols(genes_gr, "gene_id") %>%
     dplyr::filter(strand == gene_strand) %>% #Forbid antisense isoforms
     dplyr::select(tx_id, tx_name, gene_id, gene_name, gene_biotype)
+  
   
   # stop codon (stop codon is the last 3 nt in cds)
   cds_by_tx <- cdsBy(txdb, by="tx", use.names=TRUE) %>% delist("tx_name")
@@ -444,32 +470,35 @@ MakeTandemUTRReferenceFromGTF = function(txdb = gtf_TxDb, genes_gr = NULL, gaps_
   cds.ends = c(cds.ends.plus,cds.ends.minus)
   
   #Make 3'UTR db
-  Tx = GenomicFeatures::threeUTRsByTranscript(txdb, use.names = TRUE)
+  
+  Tx = threeUTRsByTranscript(txdb, use.names = TRUE)
   UTR_3_GR <- Tx %>%
     delist("tx_name") %>%
     plyranges::select(tx_name) %>%
     left_join_mcols(db_trans, "tx_name")
   UTR_3_GR$UID <- c(1:length(UTR_3_GR))
   
+  
   if (extension > 0){
+    
     extensions_gr <- gaps_gr %>%
-      plyranges::join_overlap_inner_directed(flank_downstream(UTR_3_GR,1)) %>%
-      plyranges::anchor_5p() %>%
-      plyranges::mutate(width=pmin(width, extension))
+      join_overlap_inner_directed(flank_downstream(UTR_3_GR,1)) %>%
+      anchor_5p() %>%
+      mutate(width=pmin(width, extension))
     idx = which( UTR_3_GR$UID %in% extensions_gr$UID)
     ext = UTR_3_GR[idx]
     if (!all(ext$UID == extensions_gr$UID)){
       stop("exiting. 3'UTR UIDs don't match.")
     }
-    ext = ext %>% anchor_5p() %>% plyranges::mutate(width=width+width(extensions_gr)) %>% trim()
+    ext = ext %>% anchor_5p() %>% mutate(width=width+width(extensions_gr)) %>% trim()
     UTR_3_GR = UTR_3_GR[-idx]
     UTR_3_GR = c(UTR_3_GR,ext)
     UTR_3_GR = UTR_3_GR[  order(UTR_3_GR$UID, decreasing = F) ]
   }
   
   # remove genes without unique strand
-  plus = UTR_3_GR[which(strand(UTR_3_GR) == "+")] 
-  minus = UTR_3_GR[which(strand(UTR_3_GR) == "-")] 
+  plus = UTR_3_GR[which(as.character(strand(UTR_3_GR)) == "+")] 
+  minus = UTR_3_GR[which(as.character(strand(UTR_3_GR)) == "-")] 
   if ( length( unique(plus[which(plus$gene_name %in% minus$gene_name)]$gene_name)) > 0){
     g = unique(plus[which(plus$gene_name %in% minus$gene_name)]$gene_name)
     UTR_3_GR = UTR_3_GR[-which(UTR_3_GR$gene_name %in% g)]
@@ -492,7 +521,7 @@ MakeTandemUTRReferenceFromGTF = function(txdb = gtf_TxDb, genes_gr = NULL, gaps_
   starts = rbind(starts.plus,starts.minus)
   ends = rbind(ends.plus,ends.minus)
   # width
-  Tx = split(UTR_3_GR, UTR_3_GR$tx_name) #makes sure it includes any 3'UTR extensions of terminal exons
+  Tx = as(split(UTR_3_GR, UTR_3_GR$tx_name),'GRangesList') #makes sure it includes any 3'UTR extensions of terminal exons
   W = sum(width(Tx)) 
   # exons
   ExonLengths = sapply( width(Tx) , FUN = function(z){paste0( z, collapse = ';' )})
@@ -974,8 +1003,8 @@ GetUTRtypes <- function(
   if ( table(strand(ranges))["*"] != 0){
     stop("Exiting. Cannot annotate unstranded PAS. Please remove unstranded PAS.")
   }
-  gtf_gr <- rtracklayer::import(gtf.file)
-  gtf_TxDb <- GenomicFeatures::makeTxDbFromGFF(gtf.file, format = "gtf")
+  gtf_gr <- import(gtf.file)
+  gtf_TxDb <- suppressWarnings(makeTxDbFromGFF(gtf.file, format = "gtf"))
   if( length(unique(genome(object[[assay]]))) == 0 ){
     stop("Exiting. No genome information provided in polyAsiteAssay.")
   }

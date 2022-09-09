@@ -11,7 +11,6 @@ AnnotatePASfromGTF(
   genome = genome,
   hard_extension = 10,
   extension = 2000,
-  invert_strand = FALSE,
   annotationType = "any",
   transcriptDetails = TRUE,
   SequenceAnalysis = TRUE,
@@ -23,7 +22,31 @@ AnnotatePASfromGTF(
 )
 }
 \arguments{
-\item{object}{}
+\item{object}{Seurat object}
+
+\item{assay}{Assay. Currently, only polyAsite.Assay supported.}
+
+\item{gtf.file}{Full path to GTF file used for annotation.}
+
+\item{genome}{BSGenome}
+
+\item{hard_extension}{Integer. 3\'UTR end coordinate shifting to downstream to aid annotation. Default 10.}
+
+\item{extension}{Integer. Extension of annotated 3\'UTR ends. Default 2000.}
+
+\item{annotationType}{annotationType. Default \"any\"}
+
+\item{transcriptDetails}{Logical. Annotation of tandem UTRs with >1 polyAsite in the same last exon.}
+
+\item{SequenceAnalysis}{Logical. Annotation of sequence features around 3\' ends, annotating for cleavage motifs, polyA strecthes and mispriming events.  .}
+
+\item{pA_motif_max_position}{Integer. Search space for cleavage motif 5\' upstream to peak 3\' end. Default 60.}
+
+\item{AAA_motif_min_position}{Integer. Search start for polyA stretch 3\' downstream to peak 3\' end. Default 10.}
+
+\item{polystretch_length}{Integer. Length of polyA stretch required for mispriming identification. Default 13.}
+
+\item{max_mismatch}{Integer. Number of allowed mismatches in polyA stretch. Default 1.#'}
 }
 \description{
 Annotate PAS from GTF file

@@ -11,7 +11,6 @@ annotate_gr_from_gtf(
   genome = NULL,
   hard_extension = 10,
   extension = 2000,
-  invert_strand = FALSE,
   annotationType = "any",
   transcriptDetails = TRUE,
   SequenceAnalysis = TRUE,
