@@ -12,6 +12,7 @@ CalcPolyAResiduals(
   background = NULL,
   min.counts.background = 5,
   min.variance = 0.1,
+  do.center = TRUE,
   verbose = TRUE
 )
 }
@@ -31,6 +32,8 @@ Default is to use all cells as a background.}
 \item{min.counts.background}{Features with at least this many counts in the background cells are included in calculation}
 
 \item{min.variance}{Sets minimum variance. Default is 0.1.}
+
+\item{do.center}{Return the centered residuals. Defautl is TRUE.}
 
 \item{verbose}{Print messages.}
 }

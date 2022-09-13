@@ -16,6 +16,7 @@
 #' Default is to use all cells as a background.
 #' @param min.counts.background Features with at least this many counts in the background cells are included in calculation
 #' @param min.variance Sets minimum variance. Default is 0.1.
+#' @param do.center Return the centered residuals. Defautl is TRUE.
 #' @param verbose Print messages.
 #'
 #'
@@ -31,6 +32,7 @@ CalcPolyAResiduals <- function(object,
                                background = NULL,
                                min.counts.background = 5,
                                min.variance = 0.1,
+                               do.center=TRUE,
                                verbose=TRUE)
  {
   if(verbose) {
@@ -120,6 +122,10 @@ CalcPolyAResiduals <- function(object,
   residual.matrix <- (m-ec) / sqrt(var.reg)
   residual.matrix <- as.matrix(residual.matrix, nrow = nrow(residual.matrix))
   #M1 <- as(residual.matrix, "dgCMatrix")
+  
+  if (do.center) {
+    residual.matrix <- scale(residual.matrix, center=TRUE, scale=FALSE)
+  }
 
   #change default assay
   DefaultAssay(object = object) <- assay

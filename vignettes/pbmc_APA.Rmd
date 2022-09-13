@@ -1,5 +1,5 @@
 ---
-title: "Using PASTA for Analyzing APA in PBMCs"
+title: "Using PASTA for Analyzing alternative polyadenylation in PBMCs"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Using PASTA for Analyzing APA in PBMCs}
@@ -10,8 +10,8 @@ vignette: >
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>"
-)
+  comment = "#>", 
+  warning = FALSE)
 ```
 
 ```{r setup}
@@ -20,9 +20,9 @@ devtools::load_all()
 library(PASTA)
 ```
 
-## Map Azimuth to RNA
-First, you can quantify RNA and map to azimuth in the standard way. 
-```{r read_in_seurat_object}
+## Annotate Cells using RNA.
+First, you can quantify RNA and create a seurat object. Then, annotate cells by mapping to azimuth. 
+```{r read_in_seurat_object, fig.height=6, fig.width=8}
 pbmc <- readRDS(file = "/brahms/shared/PASTA/pbmc.rds")
 projected.umap <- readRDS('/brahms/shared/PASTA/umap_pbmcs.Rds')
 pbmc <- pbmc[, Cells(projected.umap)]
@@ -35,11 +35,11 @@ DimPlot(pbmc, group.by = 'predicted.celltype.l2', label = T) + NoLegend()
 ```
 
 ## Make polyA assay
-
-```{r load_polyA}
+Next, read in polyA counts and make a polyA site assay.
+```{r load_polyA, message=FALSE}
 pA.count.file <- "/brahms/shared/PASTA/pA_counts.tab.gz"
 peak.file <- "/brahms/shared/PASTA/pA_polyA_peaks.gff"
-fragment.file <- "/brahms/shared/PASTA/10k_PBMC.blocks.sort.uniq.bed.gz"
+fragment.file <- "/brahms/shared/PASTA/10k_PBMC.mod.blocks.sort.uniq.bed.gz"
 
 pA.counts = ReadPolyApipe( counts.file = pA.count.file, 
                            peaks.file = peak.file, 
@@ -55,7 +55,7 @@ pA.assay = CreatePolyAsiteAssay(counts = pA.counts , genome = "hg38", fragments 
 ```
 
 ## Add polyA site assay to seurat object
-```{r, include=FALSE}
+```{r}
 # intersect cells between polyA assay and RNA assay 
 cells = intersect( Cells(pbmc) , Cells(pA.assay))
 pbmc = subset(pbmc, cells = cells)
@@ -64,10 +64,11 @@ pbmc[['pA']] <- pA.assay
 ```
 
 ## Annotate peaks 
-```{r annotate}
+This is currently not working.
+```{r annotate, eval=FALSE}
 # Annotate from EnsDB is done similarly to polyApipe
 # In addition, we annotate tandem UTRs
-gtf.file = '/brahms/shared/PASTA/GENCODE_hg38_v32_ensembl98.gtf'
+gtf.file = '/brahms/shared/PASTA/ensembl_hg38_v97.gtf'
 BSgenome <- BSgenome.Hsapiens.UCSC.hg38::BSgenome.Hsapiens.UCSC.hg38
 
 pbmc = AnnotatePASfromGTF(object = pbmc, assay = "pA", 
@@ -78,5 +79,60 @@ pbmc = AnnotatePASfromGTF(object = pbmc, assay = "pA",
                            hard_extension = 10, extension = 2000 )
 ```
 
-## Calculate polyA site redundancies
+## Calculate polyA site residuals
+```{r residuals, warning=FALSE}
+#set meta features 
+meta.features = readRDS(file="/brahms/shared/PASTA/pbmc_meta_features.Rds")
+pbmc[['pA']]@meta.features <- meta.features
+
+#use all features that are annotated to a gene and are in 3'UTR or extension
+features.use <- rownames(meta.features)[meta.features$symbol!="" & 
+                                        meta.features$UTR3=="YES" | 
+                                        meta.features$UTR3_extension=="YES"]
+
+
+pbmc = CalcPolyAResiduals(object = pbmc,
+                          assay="pA",
+                          new.assay.name = "polyAresiduals",
+                          features=features.use,
+                          min.counts.background = 5, 
+                          min.variance = 0.1, #minimum variance of 0.1 at each site 
+                          do.center = TRUE, #return the centered polyA residuals
+                          verbose=TRUE )
+```
+
+## Run PCA and UMAP on variable features 
+```{r polyA_analysis, fig.height=6, fig.width=10}
+pbmc <- FindVariableFeatures(pbmc)
+pbmc <- RunPCA(pbmc)
+pbmc <- RunUMAP(pbmc, dims = 1:20)
+Idents(pbmc) <- pbmc$predicted.celltype.l2
+DimPlot(pbmc, group.by="predicted.celltype.l2")
+```
+
+## Find markers that differentiate monocytes from other celltypes.
+```{r find_markers}
+
+mono.markers <- FindMarkers(pbmc, 
+                            slot = "scale.data",  #use the scale.data slot to test residuals
+                            ident.1 = c("CD14 Mono", "CD16 Mono"),
+                            min.pct = 0.05)
+head(mono.markers)
+mono.markers$symbol <- pbmc[['pA']][["symbol"]][rownames(mono.markers),]    
+head(mono.markers, 15)
+```
+
+## Visualization
+We can use coverage plots to illustrate differences between monocytes and other celltypes.
+
+```{r coverageplot, fig.height=7, fig.width=9}
+#add annotation
+library(EnsDb.Hsapiens.v86)
+gene.ranges <- GetGRangesFromEnsDb(ensdb = EnsDb.Hsapiens.v86) # convert EnsDb to GRanges
+seqlevelsStyle(gene.ranges) <- 'UCSC'
+genome(gene.ranges) <- "hg38"
+Annotation(pbmc[["pA"]]) <- gene.ranges
+CoveragePlot(pbmc, "chr17-41690699-41691644", extend.upstream = 200, extend.downstream = 200, 
+             idents = c("CD14 Mono", "CD8 Naive", "CD4 TCM", "CD4 Naive"), annotation="transcript")
+```
 
