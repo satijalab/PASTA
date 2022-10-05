@@ -23,7 +23,8 @@ Imports:
     GenomeInfoDb,
     GenomicFeatures,
     plyranges,
-    IRanges
+    IRanges,
+    magrittr
 Depends:
     R (>= 4.0.0),
     methods, 

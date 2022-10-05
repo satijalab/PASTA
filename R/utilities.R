@@ -56,21 +56,25 @@ GRangesToString <- function(grange, sep = c(":", ",", ":")) {
 }
 
 
-#' Calculate Tandem UTR Length Wrapper
-#'
-#' Calculate avergae length of tandem 3'UTRs 
-#' @param object Seurat object
+#' Calculate average tandem UTR length for each cell
+#' 
+#' @param object
 #' @param assay Name of polyAsite.Assay 
 #' @param genes Vector of Gene names containing tandem UTRs. If Null, all annotated tandem UTRs are used (default). 
 #' @param pseudocount Pseudocount to add for tandem UTR length calculation (default 0). 
 #' @param min.reads.per.cell Use genes with minimum average read count (default 1). 
 #'
-#' @return Returns a matrix with average tandem UTR length
-#' @import pbapply
+#' @return Calculates the average tandem UTR length for each cell
 #' @export
 #' @concept utilities
+#' 
+#'
 
-CalculateTandemUTRlength <- function(object = NULL, assay = NULL, genes = NULL, pseudocount = 0, min.reads.per.cell = 1){
+CalcAvgTandemUTRlength <- function(object, 
+                                   assay="pA", 
+                                   genes=NULL, 
+                                   pseudocount.use = 1, 
+                                   min.reads.per.cell = 1) {
   if( !assay %in% Assays(object) ){
     stop(paste0(assay," assay is not present in object"))
   }
@@ -84,7 +88,7 @@ CalculateTandemUTRlength <- function(object = NULL, assay = NULL, genes = NULL, 
   if( is.null(genes) ){
     # define tandem UTR genes
     idx = which( object[[assay]]@meta.features$is.tandem == TRUE )
-    genes = object[[assay]]@meta.features$symbol[idx] %>% unique()
+    genes = unique(object[[assay]]@meta.features$symbol[idx])
     # ! some sites are annotated to >1 gene.
     # Needs to be resolved later.
     # Ignored for now.
@@ -93,8 +97,34 @@ CalculateTandemUTRlength <- function(object = NULL, assay = NULL, genes = NULL, 
     stop("Exiting. Run AnnotatePASfromGTF() first.")
   }
   message(paste0("Looking for ",length(genes)," tandem UTR genes"))
+  
+  UTRlength.matrix = CalculateTandemUTRlength(object = object, assay = assay, genes = genes, pseudocount.use = pseudocount.use, min.reads.per.cell = min.reads.per.cell)
+  UTRlengths = apply(UTRlength.matrix, 1, FUN = function(x){mean(x,na.rm = T)})
+  m = match(rownames(object@meta.data) , names(UTRlengths))
+  avg = median(UTRlengths[m])
+  tandem.UTR.lengths.norm <- (UTRlengths[m]-avg)/sd(UTRlengths[m])
+  object[['tandem.UTR.lengths.norm']] <- tandem.UTR.lengths.norm
+  
+  return(object)
+}
+
+
+#' Calculate Tandem UTR Length for each gene
+#'
+#' Calculate avergae length of tandem 3'UTRs 
+#' @param object Seurat object
+#' @param assay Name of polyAsite.Assay 
+#' @param genes Vector of Gene names containing tandem UTRs. If Null, all annotated tandem UTRs are used (default). 
+#' @param pseudocount Pseudocount to add for tandem UTR length calculation (default 0). 
+#' @param min.reads.per.cell Use genes with minimum average read count (default 1). 
+#' @return Returns a matrix with average tandem UTR length
+#' @import pbapply
+#' @export
+#' @concept utilities
+
+CalculateTandemUTRlength <- function(object = NULL, assay = NULL, genes = NULL, pseudocount.use = 0, min.reads.per.cell = 1){
   # get total raw counts per gene over cells 
-  total <- rowSums( GetAssayData(object = object, assay = assay, slot = "data") )
+  total <- rowSums( GetAssayData(object = object, assay = assay, slot = "data")[rownames(object[[assay]]@meta.features),] )
   df <- data.frame(object[[assay]]@meta.features$symbol , 
                    object[[assay]]@meta.features$is.tandem ,
                    object[[assay]]@meta.features$tandem_utr_reference_length ,
@@ -118,7 +148,7 @@ CalculateTandemUTRlength <- function(object = NULL, assay = NULL, genes = NULL, 
     df = subset( df , ! genes %in% names(del))
   }
   
-  L = pbsapply( unique(df$genes) ,function(gene) calcUTRlength(gene,df,object = object, assay = assay, pc = pseudocount , Min.Reads.Per.Cell = min.reads.per.cell))
+  L = pbsapply( unique(df$genes) ,function(gene) calcUTRlength(gene,df,object = object, assay = assay, pc = pseudocount.use , Min.Reads.Per.Cell = min.reads.per.cell))
   UTRlength.matrix = do.call( cbind , L[which( sapply(L,is.null) == FALSE )] )
   
   message(paste0("Calculated tandem UTR length for ", ncol(UTRlength.matrix),"/",length(unique(df$genes))," filtered tandem UTR genes"))
@@ -137,7 +167,6 @@ CalculateTandemUTRlength <- function(object = NULL, assay = NULL, genes = NULL, 
 #' @param Min.Reads.Per.Cell Use genes with minimum average read count (default 1).
 #'
 #' @return Returns a vector with average tandem UTR length
-#' @export
 #' @concept utilities
 
 calcUTRlength <- function(gene,df,object,assay = assay, pc = 0, Min.Reads.Per.Cell = 1 ) {
