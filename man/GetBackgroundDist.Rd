@@ -4,7 +4,14 @@
 \alias{GetBackgroundDist}
 \title{Get Background Distribution}
 \usage{
-GetBackgroundDist(object, features, background, assay, min.counts.background)
+GetBackgroundDist(
+  object,
+  features,
+  background,
+  gene.names,
+  assay,
+  min.counts.background
+)
 }
 \arguments{
 \item{object}{Seurat object containing a polyAsiteAssay}
@@ -14,6 +21,8 @@ If NULL, use all features.}
 
 \item{background}{Identity of cells to use as background
 If NULL, uses all cells combined as a background}
+
+\item{gene.names}{Name of column containing gene annotations}
 
 \item{assay}{Name of polyAsiteAssay to be used in calculating polyAresiduals}
 

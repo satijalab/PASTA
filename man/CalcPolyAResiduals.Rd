@@ -10,6 +10,7 @@ CalcPolyAResiduals(
   new.assay.name = "polyAresiduals",
   features = NULL,
   background = NULL,
+  gene.names = "symbol",
   min.counts.background = 5,
   min.variance = 0.1,
   do.center = TRUE,
@@ -28,6 +29,9 @@ Default is to use all features.}
 
 \item{background}{Identity of cells to use as background.
 Default is to use all cells as a background.}
+
+\item{gene.names}{Column containing the gene where each polyA site is annotated.
+Default is symbol.}
 
 \item{min.counts.background}{Features with at least this many counts in the background cells are included in calculation}
 

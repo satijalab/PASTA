@@ -14,6 +14,8 @@
 #' Default is to use all features.
 #' @param background Identity of cells to use as background.
 #' Default is to use all cells as a background.
+#' @param gene.names Column containing the gene where each polyA site is annotated.
+#' Default is symbol. 
 #' @param min.counts.background Features with at least this many counts in the background cells are included in calculation
 #' @param min.variance Sets minimum variance. Default is 0.1.
 #' @param do.center Return the centered residuals. Defautl is TRUE.
@@ -30,6 +32,7 @@ CalcPolyAResiduals <- function(object,
                                new.assay.name = "polyAresiduals",
                                features=NULL,
                                background = NULL,
+                               gene.names = "symbol",
                                min.counts.background = 5,
                                min.variance = 0.1,
                                do.center=TRUE,
@@ -59,14 +62,17 @@ CalcPolyAResiduals <- function(object,
 
 
   #check if symbols are contained in meta features
-  if (sum(is.na(object[[assay]]@meta.features[features,"symbol"])) > 0) {
+  if (!(gene.names %in% colnames(object[[assay]][[]])) | sum(is.na(object[[assay]][[]][features,gene.names])) > 0) {
     stop("Symbol must be present for all features in meta.features")
   }
 
 
   ##############################################################################
   #get pseudobulked fraction of reads from background
-  background.dist <- GetBackgroundDist(object = object, features = features, background = background.use, assay = assay,
+  background.dist <- GetBackgroundDist(object = object, features = features, 
+                                       background = background.use, 
+                                       gene.names = gene.names, 
+                                       assay = assay,
                                        min.counts.background = min.counts.background)
   features.use <- background.dist$peak
 
@@ -145,6 +151,7 @@ CalcPolyAResiduals <- function(object,
 #' If NULL, use all features.
 #' @param background Identity of cells to use as background
 #' If NULL, uses all cells combined as a background
+#' @param gene.names Name of column containing gene annotations
 #' @param min.counts.background Features with at least this many counts in the background cells are included in calculation
 #'
 #' @return Returns a data frame containing all peaks within genes that have multiple polyA sites that meet min.counts.background criteria
@@ -152,14 +159,14 @@ CalcPolyAResiduals <- function(object,
 #' @importFrom stats aggregate
 #' @concept residuals
 #'
-GetBackgroundDist <- function(object, features, background, assay,  min.counts.background) {
+GetBackgroundDist <- function(object, features, background, gene.names, assay,  min.counts.background) {
   # returns the pseudobulked background distribution for peaks specified
   # must contain gene information in meta data
 
   nt.pseudo <- AverageExpression(object, features = features, assays = assay, slot="counts")
   nt.pseudo <- data.frame(background = nt.pseudo[[1]][,background]) #subset just the background
   nt.pseudo$background <- nt.pseudo$background * sum(Idents(object)==background)
-  nt.pseudo$gene <- paste0(object[[assay]]@meta.features[features, "symbol"], "_", object[[assay]]@meta.features[features, "strand"])
+  nt.pseudo$gene <- paste0(object[[assay]][[]][features, gene.names], "_", object[[assay]]@meta.features[features, "strand"])
   nt.pseudo$peak <- rownames(nt.pseudo)
 
   nt.pseudo <- nt.pseudo[nt.pseudo$background>min.counts.background,] #subset to peaks with min number of counts

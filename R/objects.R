@@ -144,6 +144,39 @@ CreatePolyAsiteAssay <- function(
   return(pA.assay)
 }
 
+#' Merge polyA site assays
+#' 
+#' @export
+#' @concept objects
+#' @method merge polyAsiteAssay
+#' 
+merge.polyAsiteAssay <- function(x = NULL, 
+                                 y = NULL,
+                                 add.cell.ids = NULL, 
+                                 cells= NULL, ...) {
+  chromatin.x <- as(object = x, Class = 'ChromatinAssay')
+  if (is.list(y)) {
+    chromatin.y <- list()
+    for (i in 1:length(y)) {
+      chromatin.y[[i]] <- as(object = y[[i]], Class = 'ChromatinAssay') 
+    }
+  } else {
+    chromatin.y <- as(object = y, Class = 'ChromatinAssay') 
+  }
+  chromatin.m <- merge(x = chromatin.x, y = chromatin.y, 
+                       add.cells.ids = add.cell.ids, ...)
+  chromatin.m <- as(object = chromatin.m, Class = 'polyAsiteAssay')
+  
+  # Do center.scale.data slot subsetting
+  #if (dim(x@center.scale.data)[1] >0 ) {
+  #  center.scale <- GetAssayData(x, slot = "center.scale.data" )
+  #  center.scale <- center.scale[features, cells]
+  #  chromatin <- SetAssayData(chromatin, slot = "center.scale.data", new.data = center.scale)
+  #}
+  return(chromatin.m)
+}
+
+
 #' Subset a polyA site assay 
 #' 
 #' @export
@@ -158,11 +191,11 @@ subset.polyAsiteAssay <- function(x,
   chromatin <- as(object = chromatin, Class = 'polyAsiteAssay')
   
   # Do center.scale.data slot subsetting
-  if (dim(pA.assay@center.scale.data)[1] >0 ) {
-    center.scale <- GetAssayData(x, slot = "center.scale.data" )
-    center.scale <- center.scale[features, cells]
-    chromatin <- SetAssayData(chromatin, slot = "center.scale.data", new.data = center.scale)
-  }
+  #if (dim(x@center.scale.data)[1] >0 ) {
+  #  center.scale <- GetAssayData(x, slot = "center.scale.data" )
+  #  center.scale <- center.scale[features, cells]
+  #  chromatin <- SetAssayData(chromatin, slot = "center.scale.data", new.data = center.scale)
+  #}
   return(chromatin)
 }
 
