@@ -199,7 +199,7 @@ DirichletMultionmial <- function(gene.test, background.dist, m.background, gene.
   peaks <- background.dist$peak[background.dist$gene == gene.test]
   t <- m.background[rownames(m.background) %in% peaks,]
   t <- t(t)
-  fit <- try(compareFit <- MGLMfit(t, dist="DM"), silent=TRUE)
+  fit <- try(compareFit <- suppressWarnings(MGLMfit(t, dist="DM")), silent=TRUE)
 
   if (class(fit)!="try-error") {
     param <- compareFit@estimate
