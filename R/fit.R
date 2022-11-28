@@ -172,6 +172,11 @@ GetBackgroundDist <- function(object, features, background, gene.names, assay,  
   nt.pseudo <- nt.pseudo[nt.pseudo$background>min.counts.background,] #subset to peaks with min number of counts
   genes.use <- nt.pseudo$gene[duplicated(nt.pseudo$gene)] #only use genes with at least 2 peaks per gene
   nt.pseudo <- nt.pseudo[nt.pseudo$gene %in% genes.use,]
+  
+  if ( length(genes.use)  ==  0) {
+    stop("Found no genes with more than 2 features within a gene. Please make sure you are including 
+         all peaks within a gene you would like to include.")
+  }
 
   tmp <- aggregate(nt.pseudo$background, list(nt.pseudo$gene), FUN=sum)
   colnames(tmp) <- c("gene", "sum")

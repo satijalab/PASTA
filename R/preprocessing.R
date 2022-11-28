@@ -116,7 +116,8 @@ ReadPolyApipe <- function(counts.file, peaks.file = NULL, sep = c(":",",",":"),
 #' Finds variable features based on polyA residuals
 #' @param object Object containing a polyAsite assay
 #' @param nfeatures Number of features to select as top variable features.
-
+#' @param gene.names Column in meta features that contains gene names. At most one feature per gene will be selected.
+#' 
 #' @rdname FindVariableFeatures
 #'
 #' @concept preprocessing
@@ -126,12 +127,18 @@ ReadPolyApipe <- function(counts.file, peaks.file = NULL, sep = c(":",",",":"),
 FindVariableFeatures.polyAsiteAssay <- function(
     object,
     nfeatures = 2000,
+    gene.names = "symbol",
     ...
 ) {
 
-  nfeatures <- min(nfeatures, nrow(x = nrow(object)))
-  var <- apply(object@scale.data, 1, function(x) var(x[x != 0]))
-  VariableFeatures(object) <- head(names(sort(var, decreasing = TRUE)), n=nfeatures)
+  var <- data.frame(var = apply(object@scale.data, 1, function(x) var(x[x != 0])))
+  var$symbol <- object[[]][rownames(var), gene.names]
+  var <- var[order(var$var, decreasing = TRUE), ] #sort by maximum variance 
+  var.unique <- var[!duplicated(var$symbol),]
+  
+  nfeatures <- min(nfeatures, nrow(x = nrow(var.unique)))
+
+  VariableFeatures(object) <- head(rownames(var.unique), n=nfeatures)
   return(object)
 }
 
