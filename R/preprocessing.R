@@ -117,6 +117,7 @@ ReadPolyApipe <- function(counts.file, peaks.file = NULL, sep = c(":",",",":"),
 #' @param object Object containing a polyAsite assay
 #' @param nfeatures Number of features to select as top variable features.
 #' @param gene.names Column in meta features that contains gene names. At most one feature per gene will be selected.
+#' @param method How to calculate polyA residuals. If method = "residuals", will use 
 #' 
 #' @rdname FindVariableFeatures
 #'
@@ -127,18 +128,31 @@ ReadPolyApipe <- function(counts.file, peaks.file = NULL, sep = c(":",",",":"),
 FindVariableFeatures.polyAsiteAssay <- function(
     object,
     nfeatures = 2000,
+    selection.method = "residuals",
     gene.names = "symbol",
-    ...
-) {
+    ...)
+  {
 
-  var <- data.frame(var = apply(object@scale.data, 1, function(x) var(x[x != 0])))
-  var$symbol <- object[[]][rownames(var), gene.names]
-  var <- var[order(var$var, decreasing = TRUE), ] #sort by maximum variance 
-  var.unique <- var[!duplicated(var$symbol),]
+  print(selection.method)
+  if (selection.method == "residuals") {
+    
+    if (dim(GetAssayData(x, slot="scale.data"))[1] == 0)  {
+      stop ("No features found in scale.data slot. Run CalcPolyAResiduals prior to FindVariableFeatures.")
+    }
+    
+    var <- data.frame(var = apply(object@scale.data, 1, function(x) var(x[x != 0])))
+    var$symbol <- object[[]][rownames(var), gene.names]
+    var <- var[order(var$var, decreasing = TRUE), ] #sort by maximum variance 
+    var.unique <- var[!duplicated(var$symbol),]
+    
+    nfeatures <- min(nfeatures, nrow(x = nrow(var.unique)))
   
-  nfeatures <- min(nfeatures, nrow(x = nrow(var.unique)))
-
-  VariableFeatures(object) <- head(rownames(var.unique), n=nfeatures)
+    VariableFeatures(object) <- head(rownames(var.unique), n=nfeatures)
+  } else {
+    assay <- as(object = object[[DefaultAssay(object)]], Class = "ChromatinAssay")
+    tmp <- Seurat::FindVariableFeatures(assay, nfeatures = nfeatures, selection.method = selection.method, ...)
+    VariableFeatures(object) <- VariableFeatures(tmp)
+  }
   return(object)
 }
 

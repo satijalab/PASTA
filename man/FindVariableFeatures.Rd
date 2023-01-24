@@ -4,7 +4,13 @@
 \alias{FindVariableFeatures.polyAsiteAssay}
 \title{Finds variable features based on polyA residuals}
 \usage{
-\method{FindVariableFeatures}{polyAsiteAssay}(object, nfeatures = 2000, gene.names = "symbol", ...)
+\method{FindVariableFeatures}{polyAsiteAssay}(
+  object,
+  nfeatures = 2000,
+  slot = "data",
+  gene.names = "symbol",
+  ...
+)
 }
 \arguments{
 \item{object}{Object containing a polyAsite assay}
