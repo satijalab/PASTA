@@ -9,7 +9,6 @@
 #'
 #' @param object Seurat object containing a polyAsiteAssay
 #' @param assay Name of polyAsiteAssay to be used in calculating polyAresiduals
-#' @param new.assay.name Name of new assay containing polyA residuals.
 #' @param features Features to include in calculation of polyA residuals.
 #' Default is to use all features.
 #' @param background Identity of cells to use as background.
@@ -29,7 +28,6 @@
 #'
 CalcPolyAResiduals <- function(object,
                                assay="polyA",
-                               new.assay.name = "polyAresiduals",
                                features=NULL,
                                background = NULL,
                                gene.names = "symbol",
@@ -43,6 +41,7 @@ CalcPolyAResiduals <- function(object,
   }
 
   #if features in NULL, then specify all features in polyA assay
+  #TO DO: change to all features with a gene annotation
   if (is.null(features)) {
     features <- rownames(GetAssayData(object, assay=assay))
   }
@@ -121,8 +120,10 @@ CalcPolyAResiduals <- function(object,
     message("Regularizing Dirichlet Multionmial Variance")
   }
 
-  var.reg <- RegDMVar(ec = ec, var = var, m = m, m.background = m.background, background.dist = background.dist,
-                      gene.sum = gene.sum, background.cells = background.cells, min.variance = min.variance)
+  var.reg <- RegDMVar(ec = ec, var = var, m = m, m.background = m.background, 
+                      background.dist = background.dist,
+                      gene.sum = gene.sum, background.cells = background.cells,
+                      min.variance = min.variance)
 
   #calculate residual matrix
   residual.matrix <- (m-ec) / sqrt(var.reg)

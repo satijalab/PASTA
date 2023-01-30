@@ -24,8 +24,6 @@ PolyACoveragePlot(
 
 \item{gene.names}{Column containing the gene where each polyA site is annotated.}
 
-\item{extend.downstream}{}
-
 \item{extend.upstream}{}
 }
 \description{

@@ -120,7 +120,7 @@ ReadPolyApipe <- function(counts.file, peaks.file = NULL, sep = c(":",",",":"),
 #' @param method How to calculate polyA residuals. If method = "residuals", will use 
 #' 
 #' @rdname FindVariableFeatures
-#'
+#' @importFrom utils head tail
 #' @concept preprocessing
 #' @export
 #' @method FindVariableFeatures polyAsiteAssay
@@ -136,7 +136,7 @@ FindVariableFeatures.polyAsiteAssay <- function(
   print(selection.method)
   if (selection.method == "residuals") {
     
-    if (dim(GetAssayData(x, slot="scale.data"))[1] == 0)  {
+    if (dim(GetAssayData(object, slot="scale.data"))[1] == 0)  {
       stop ("No features found in scale.data slot. Run CalcPolyAResiduals prior to FindVariableFeatures.")
     }
     

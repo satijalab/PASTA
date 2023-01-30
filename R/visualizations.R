@@ -8,7 +8,8 @@
 #' @param gene Name of gene to plot. Will extract all 
 #' @param gene.names Column containing the gene where each polyA site is annotated.
 #' @param extend.upstream 
-#' @param extend.downstream 
+#' @param extend.downstream
+#' @importFrom utils head tail
 #' @export
 #' @concept visualization
 #' 

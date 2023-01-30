@@ -1,0 +1,64 @@
+---
+title: "Plasmablasts in Covid and Healthy Patients"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Plasmablasts in Covid and Healthy Patients}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+## Annotate Cells Using RNA
+```{r setup}
+library(PASTA)
+#currently reading in RNA annotations
+obj <- readRDS(file="/brahms/kowalskim/data/polyA/data/workflow_12_04/plasmablasts/230118_rna_only_seurat_obj.Rds")
+```
+
+## Make polyA assay
+Next, read in polyA counts and make a polyA site assay.
+```{r load_polyA, message=FALSE}
+dir <- "/brahms/kowalskim/data/polyA/data/Science2020_Arunalacham/"
+pA.count.files <- paste0(dir, list.files(path = dir, pattern = "counts.tab.gz"))
+donors <- gsub("_pA_counts.tab.gz", "", pA.count.files)
+peak.file <- paste0(dir, "PAS_polyA_peaks.gff")
+
+#fragment.file <- "/brahms/shared/PASTA/10k_PBMC.mod.blocks.sort.uniq.bed.gz" 
+#need to do 
+
+assay.list <- list()
+for (i in 1:length(donors)) {
+  pA.counts = ReadPolyApipe( counts.file = pA.count.files[[i]], 
+                             peaks.file = peak.file, 
+                             filter.chromosomes = TRUE,
+                             min.features = 10, 
+                             min.cells = 25)
+  #match column names to RNA assay 
+  colnames(pA.counts) <- paste0(donors[[i]], "_", colnames(pA.counts), '-1')
+  
+  #subset cells that are in RNA assay 
+  pA.counts <- pA.counts[,intersect(colnames(obj), colnames(pA.counts))]
+  # create polyA site assay 
+  #need to add in fragment files as well if you want to 
+  pA.assay = CreatePolyAsiteAssay(counts = pA.counts , genome = "hg38") #fragments = fragment.file, validate.fragments =
+  assay.list[[i]] <- pA.assay
+}
+
+#add polyA to seurat assay 
+merge <- merge(assay.list[[1]], assay.list[2:length(assay.list)])
+obj[['pA']] <- merge
+```
+
+
+
+## Restrict to polyA sites that overlap with polyAdbv3 
+```{r add_polyA_assay}
+
+```
+

@@ -15,7 +15,7 @@
 #'
 #' @import Signac
 #' @import Seurat
-#'
+#' @importFrom methods as new
 #' @name polyAsiteAssay-class
 #' @rdname polyAsiteAssay-class
 #' @exportClass polyAsiteAssay
