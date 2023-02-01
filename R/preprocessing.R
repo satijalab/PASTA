@@ -117,7 +117,8 @@ ReadPolyApipe <- function(counts.file, peaks.file = NULL, sep = c(":",",",":"),
 #' @param object Object containing a polyAsite assay
 #' @param nfeatures Number of features to select as top variable features.
 #' @param gene.names Column in meta features that contains gene names. At most one feature per gene will be selected.
-#' @param method How to calculate polyA residuals. If method = "residuals", will use 
+#' @param method How to calculate polyA residuals. If method = "residuals", will use select the most variable in 
+#' each gene and then pick the top nfeatures.
 #' 
 #' @rdname FindVariableFeatures
 #' @importFrom utils head tail
@@ -132,12 +133,15 @@ FindVariableFeatures.polyAsiteAssay <- function(
     gene.names = "symbol",
     ...)
   {
-
-  print(selection.method)
   if (selection.method == "residuals") {
     
     if (dim(GetAssayData(object, slot="scale.data"))[1] == 0)  {
       stop ("No features found in scale.data slot. Run CalcPolyAResiduals prior to FindVariableFeatures.")
+    }
+    
+    if (!(gene.names %in% colnames(object[[]]))) {
+      stop("Gene.names column not found in meta.features, please make sure 
+         you are specific gene.names correctly")
     }
     
     var <- data.frame(var = apply(object@scale.data, 1, function(x) var(x[x != 0])))

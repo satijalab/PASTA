@@ -7,13 +7,14 @@
 CalcPolyAResiduals(
   object,
   assay = "polyA",
-  new.assay.name = "polyAresiduals",
   features = NULL,
   background = NULL,
   gene.names = "symbol",
   min.counts.background = 5,
   min.variance = 0.1,
   do.center = TRUE,
+  residuals.max = 10,
+  residuals.min = -10,
   verbose = TRUE
 )
 }
@@ -21,8 +22,6 @@ CalcPolyAResiduals(
 \item{object}{Seurat object containing a polyAsiteAssay}
 
 \item{assay}{Name of polyAsiteAssay to be used in calculating polyAresiduals}
-
-\item{new.assay.name}{Name of new assay containing polyA residuals.}
 
 \item{features}{Features to include in calculation of polyA residuals.
 Default is to use all features.}
@@ -37,7 +36,11 @@ Default is symbol.}
 
 \item{min.variance}{Sets minimum variance. Default is 0.1.}
 
-\item{do.center}{Return the centered residuals. Defautl is TRUE.}
+\item{do.center}{Return the centered residuals. Default is TRUE.}
+
+\item{residuals.max}{Clip residuals above this value. Default is 10. If NULL, then no clipping.}
+
+\item{residuals.min}{Clip residuals below this value. Default is -10. If NULL, then no clipping.}
 
 \item{verbose}{Print messages.}
 }
