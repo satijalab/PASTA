@@ -29,7 +29,7 @@ Depends:
     R (>= 4.0.0),
     methods, 
     Seurat (>= 4.0.0),
-    Signac (>= 1.7.0)
+    Signac (>= 1.6.0)
 Suggests: 
     knitr,
     rmarkdown

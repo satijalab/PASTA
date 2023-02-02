@@ -20,9 +20,9 @@ knitr::opts_chunk$set(
 
 
 ```{r packages}
-#remotes::install_git("satijalab/PASTA", "develop") #install from github to have latest version
-#library(PASTA)
-devtools::load_all()
+remotes::install_git("satijalab/PASTA", "develop") #install from github to have latest version
+library(PASTA)
+#devtools::load_all()
 library(ggplot2)
 
 ```
