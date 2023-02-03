@@ -22,4 +22,5 @@ Check out the [PASTA vignette](http://www.satijalab.org/seurat/pasta_vignette.ht
 # Links
 
 [Seurat](www.satijalab.org/seurat): R package for the analysis, integration, and exploration of scRNA-seq data
-[CPA-Perturb-seq]: Preprint describing analytical methods for characterizing APA in single-cell datasets
+
+[CPA-Perturb-seq](link): Preprint describing analytical methods for characterizing APA in single-cell datasets
