@@ -1,5 +1,7 @@
 <img width="1014" alt="image" src="https://user-images.githubusercontent.com/351873/216794672-930695ec-4d7e-4eff-b051-3ba33024d32a.png">
 
+# PASTA (PolyA Site analysis using relative Transcript Abundance)
+
 # Overview 
 
 PASTA is a toolkit for analysis, visualization, and exploration of cellular heterogeneity in alternative polyadenylation (APA) from scRNA-seq datasets. While scRNA-seq has been widely applied to characterize cellular heterogeneity in gene expression levels, these datasets can also be leveraged to explore variation in transcript structure as well. For example, reads from 3’ scRNA-seq datasets can be leveraged to quantify the relative usage of multiple polyadenylation (polyA) sites within the same gene. 
