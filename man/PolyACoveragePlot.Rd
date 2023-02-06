@@ -6,7 +6,7 @@
 \usage{
 PolyACoveragePlot(
   object,
-  region = NULL,
+  region.plot = NULL,
   assay = "polyA",
   gene = NULL,
   gene.names = "symbol",
@@ -19,15 +19,15 @@ PolyACoveragePlot(
 \arguments{
 \item{object}{Seurat object}
 
-\item{region}{Region to plot. If NULL (default), will show all polyA sites within the
-gene for which polyA residuals have been calculated. If region is not specified and
-polyA residuals have not been calculated, all polyA sites within a gene will be shown.}
-
 \item{assay}{Name of polyAsite.Assay}
 
 \item{gene}{Name of gene to plot. Will extract all}
 
 \item{gene.names}{Column containing the gene where each polyA site is annotated.}
+
+\item{region}{Region to plot. If NULL (default), will show all polyA sites within the
+gene for which polyA residuals have been calculated. If region is not specified and
+polyA residuals have not been calculated, all polyA sites within a gene will be shown.}
 }
 \description{
 Calculate avergae length of tandem 3'UTRs

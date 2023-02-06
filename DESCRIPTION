@@ -24,7 +24,8 @@ Imports:
     GenomicFeatures,
     plyranges,
     IRanges,
-    magrittr
+    magrittr,
+    R.utils
 Depends:
     R (>= 4.0.0),
     methods, 

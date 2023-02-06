@@ -12,9 +12,10 @@ CalcPolyAResiduals(
   gene.names = "symbol",
   min.counts.background = 5,
   min.variance = 0.1,
-  do.center = TRUE,
-  residuals.max = 10,
-  residuals.min = -10,
+  do.scale = FALSE,
+  do.center = FALSE,
+  residuals.max = NULL,
+  residuals.min = NULL,
   verbose = TRUE
 )
 }
@@ -35,6 +36,8 @@ Default is symbol.}
 \item{min.counts.background}{Features with at least this many counts in the background cells are included in calculation}
 
 \item{min.variance}{Sets minimum variance. Default is 0.1.}
+
+\item{do.scale}{Return the scaled residuals. Default is TRUE.}
 
 \item{do.center}{Return the centered residuals. Default is TRUE.}
 

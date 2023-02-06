@@ -36,10 +36,10 @@ CalcPolyAResiduals <- function(object,
                                gene.names = "symbol",
                                min.counts.background = 5,
                                min.variance = 0.1,
-                               do.scale = TRUE,
-                               do.center = TRUE,
-                               residuals.max = 10, 
-                               residuals.min = -10,
+                               do.scale = FALSE,
+                               do.center = FALSE,
+                               residuals.max = NULL, 
+                               residuals.min = NULL,
                                verbose=TRUE)
  {
   if(verbose) {
