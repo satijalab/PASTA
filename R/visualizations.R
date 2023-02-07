@@ -8,8 +8,13 @@
 #' gene for which polyA residuals have been calculated. If region is not specified and 
 #' polyA residuals have not been calculated, all polyA sites within a gene will be shown.
 #' @param assay Name of polyAsite.Assay 
-#' @param gene Name of gene to plot. Will extract all 
+#' @param gene Name of gene to plot. Will extract all sites where polyA residual
+#' is calculated for that gene, or all sites within aa gene
+#' if no polyA residuals are calculated.
 #' @param gene.names Column containing the gene where each polyA site is annotated.
+#' @param extend.downstream How far to extend coverage downstream. Default is 500 bp. 
+#' @param extend.downstream How far to extend coverage upstream Default is 500 bp. 
+#' @param annotation Default is "transcript". Use "gene" if you only want to see one isoform. 
 #' @importFrom utils head tail
 #' @export
 #' @concept visualization
@@ -19,7 +24,7 @@ PolyACoveragePlot <- function(object,
                               region.plot = NULL,
                               assay = "polyA", 
                               gene = NULL,
-                              gene.names = "symbol", 
+                              gene.names = "Gene_Symbol", 
                               extend.downstream = 500, 
                               extend.upstream = 500, 
                               annotation = "transcript", 

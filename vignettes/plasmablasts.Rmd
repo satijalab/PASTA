@@ -24,6 +24,9 @@ In [Kowalski\* , Wessels\*, Linder\*](link]) et al, we introduce a statistical f
 
 We have implemented these methods in an R package PASTA (PolyA Site analysis using relative Transcript Abundance) that interfaces directly with Seurat. In this vignette, we demonstrate how to use PASTA and Seurat to analyze a dataset of 55,936 circulating human peripheral blood mononuclear cells (PBMC). This vignette demonstrates how to reproduce results from Figure 6 in [our manuscript](LINK). While this represents an initial demonstration of PASTA, we will be adding significant functionality and documentation in future releases.
 
+Note: At the time of release of this vignette, there was an issue with GenomeInfoDb.
+Please install as described [here](https://github.com/Bioconductor/GenomeInfoDb/issues/82).
+
 ```{r install_packages}
 #install remotes and BiocManager if necessary 
 if (!requireNamespace("remotes", quietly = TRUE))
@@ -35,16 +38,20 @@ if (!requireNamespace("BiocManager", quietly = TRUE))
 #BiocManager::install(c('BSgenome.Hsapiens.UCSC.hg38', 'EnsDb.Hsapiens.v86', 
 #                       'rtracklayer','GenomicFeatures','plyranges'))
 
+#get around GenomeInfoDb installation if necessary 
+#BiocManager::install("Bioconductor/GenomeInfoDb")
+
+
 #install PASTA
-#remotes::install_github("satijalab/PASTA", "develop")
+remotes::install_github("satijalab/PASTA", "develop")
 library(PASTA)
-devtools::load_all("~/data/data/polyA/PASTA/")
+#devtools::load_all("~/data/data/polyA/PASTA/")
 library(ggplot2)
 library(EnsDb.Hsapiens.v86)
 
 ```
 # Downloading data 
-The data for this vignette can be found on the following site: 
+The data for this vignette can be found on the following [site](zenodo_link): 
 The files include: 
 
 ```{r files}
@@ -58,8 +65,8 @@ polyAdb.file <- paste0(dir, "human_PAS_hg38.txt")
 
 # Annotate Cells Using RNA
 First, we read in a seurat object with quantified RNA. We annotated PBMCs
-using our azimuth reference, as described here [https://satijalab.github.io/azimuth/articles/run_azimuth_tutorial.html]. 
-```{r read_rna,  fig.height=5, fig.width=7}
+using our azimuth reference, as described [here](https://satijalab.github.io/azimuth/articles/run_azimuth_tutorial.html). 
+```{r read_rna,  fig.height=5, fig.width=7, message=FALSE, results='hide'}
 library(Azimuth)
 dir <- "/brahms/kowalskim/data/polyA/data/"
 counts_matrix_file = paste0(dir, "Science2020_Arunalacham_RNA/")
@@ -67,7 +74,8 @@ counts = Read10X(counts_matrix_file)
 pbmc <- CreateSeuratObject(counts, min.cells = 3, min.features = 200)
 
 #add meta data 
-meta_data <- read.csv(file = paste0(dir, "Science2020_Arunalacham_RNA/meta_data.csv"), row.names = 1 )
+meta_data <- read.csv(file = paste0(dir, "Science2020_Arunalacham_RNA/meta_data.csv"),
+                      row.names = 1 )
 pbmc <- AddMetaData(pbmc, metadata = meta_data)
 Idents(pbmc) <- pbmc$celltype.l1
 
@@ -79,20 +87,33 @@ pbmc <- merge(obj.list[[1]], obj.list[2:length(obj.list)], merge.dr = "ref.umap"
 
 library(RColorBrewer)
 cols <- colorRampPalette(brewer.pal(8, "Dark2"))(30)
-cols <- cols[c(1:4, 9, 11, 25:26, 30)]
-names(cols) <-c("NK", "CD4 T", "CD8 T", "Other T", "B", "Plasma", "Mono", "DC", "Other")
+cols.l1 <- cols[c(1:4, 9, 11, 25:26, 30)]
+names(cols.l1) <-c("NK", "CD4 T", "CD8 T", 
+                   "Other T", "B", "Plasma", "Mono", "DC", "Other")
 
-DimPlot(pbmc, reduction="ref.umap", label=TRUE, cols = cols )
+cols.l2 <- cols[c(1:22, 26:29, 30) ]
+names(cols.l2) <- c("NK", "NK_CD56bright", "NK Proliferating",
+                    "CD4 Naive", "CD4 TCM", "CD4 TEM", "CD4 CTL",  "CD4 Proliferating",
+                    "CD8 Naive","CD8 TCM", "CD8 TEM", "CD8 Proliferating",
+                   "Plasma", "Plasmablast", 
+                   "B naive", "B intermediate", "B memory", 
+                   "gdT", "MAIT","Treg", "dnT",
+                   "CD14 Mono", "CD16 Mono", 
+                   "cDC1", "cDC2", "pDC", "ASDC")
+DimPlot(pbmc, reduction="ref.umap", label=TRUE, cols = cols.l1 )
 ```
-Next, we create a polyA assay that we will add to the Seurat object, which quantifies the usage (counts) of individual polyA sites in single cells. PASTA currently accepts polyA site quantifications from the (polyApipe pipeline)[https://github.com/MonashBioinformaticsPlatform/polyApipe], but we will be adding support for additional tools in  future releases. The `ReadPolyApipe` function takes three input files 
-* A polyA site count matrix (produced by polyApipe)
-* A list of polyA site coordinates (or peaks, also produced by polyApipe)
-* A fragment file (produced from the aligned BAM file, we recommend using (sinto)[https://timoast.github.io/sinto/basic_usage.html])
+
+# Creating polyA site assay 
+Next, we create a polyA assay that we will add to the Seurat object, which quantifies the usage (counts) of individual polyA sites in single cells. PASTA currently accepts polyA site quantifications from the [polyApipe pipeline](https://github.com/MonashBioinformaticsPlatform/polyApipe), but we will be adding support for additional tools in  future releases. The `ReadPolyApipe` function takes three input files
+
+* A polyA site count matrix (produced by polyApipe) 
+* A list of polyA site coordinates (or peaks, also produced by polyApipe) 
+* A fragment file (produced from the aligned BAM file, we recommend using the `blocks` function in  [sinto](https://timoast.github.io/sinto/basic_usage.html). 
 
 Once we read in these files, we can create a polyA assay, and add it to the Seurat pbmc object.
 
 ```{r load_polyA}
-polyA.counts = ReadPolyApipe( counts.file = counts.file, 
+polyA.counts = ReadPolyApipe(counts.file = counts.file, 
                              peaks.file = peak.file, 
                              filter.chromosomes = TRUE,
                              min.features = 10, 
@@ -104,7 +125,9 @@ annotations <- GetGRangesFromEnsDb(ensdb = EnsDb.Hsapiens.v86)
 genome(annotations) <- "hg38"
 Annotation(polyA.assay) <- annotations
 
+#only use cells in both assays
 cells = intersect(colnames(pbmc), colnames(polyA.assay))
+polyA.assay = subset(polyA.assay, cells = cells)
 pbmc = subset(pbmc, cells = cells)
 pbmc[['polyA']] <- polyA.assay #add polyA assay to Seurat object 
 DefaultAssay(pbmc) <- "polyA"
@@ -115,12 +138,12 @@ pbmc
 
 # Annotate polyA sites using polyAdbv3
 
-We next annotate each polyA site with information from the (PolyA_DB v3)[https://exon.apps.wistar.org/PolyA_DB/v3/] database, which catalogs polyA sites in the human genome based on deep sequencing data. This `GetPolyADbAnnotation` function assigns each polyA site to a gene, and assigns a location within the transcript (intron, last exon, etc.). This information is stored in the assay, and can be accessed using the `[[]]` feature metadata accessor function.
+We next annotate each polyA site with information from the [PolyA_DB v3](https://exon.apps.wistar.org/PolyA_DB/v3/) database, which catalogs polyA sites in the human genome based on deep sequencing data. This `GetPolyADbAnnotation` function assigns each polyA site to a gene, and assigns a location within the transcript (intron, last exon, etc.). This information is stored in the assay, and can be accessed using the `[[]]` feature metadata accessor function.
 
 Note that for polyA sites that receive an `NA` for the `Gene_Symbol` field, these sites did not map to any site within 50bp in the polyAdbv3 database, and may be spurious.
 
-
 ```{r polyAdbv3_overlap}
+#max.dist parameter controls maximum distance from polyAdbv3 site
 pbmc <- GetPolyADbAnnotation(
   pbmc, 
   polyAdb.file = polyAdb.file,
@@ -129,7 +152,7 @@ meta <- pbmc[['polyA']][[]]
 head(meta)
 ```
 # Quantify relative polyA site usage at single-cell resolution
-We can now calculate polyA residuals, as described in our (manuscript)[LINK]. For this analysis we will focus on tandem polyadenylation events reflecting the usage of distinct polyA sites located in the 3' UTR of the terminal exon. Once we select features, we can run the `CalcPolyAResiduals` function. The residuals are stored in the `scale.data` slot of the polyA assay.
+We can now calculate polyA residuals, as described in our [manuscript](LINK). For this analysis we will focus on tandem polyadenylation events reflecting the usage of distinct polyA sites located in the 3' UTR of the terminal exon. Once we select features, we can run the `CalcPolyAResiduals` function. The residuals are stored in the `scale.data` slot of the polyA assay.
 
 ```{r calc_polyA_residuals}
 # extract 14,985 features in 3' UTRs
@@ -153,12 +176,14 @@ pbmc <- FindVariableFeatures(pbmc, selection.method = "residuals",
                             gene.names="Gene_Symbol")
 pbmc <- RunPCA(pbmc)
 pbmc <- RunUMAP(pbmc, dims = 1:30, reduction.name = "polyA.umap", reduction.key = "polyAUMAP_")
-DimPlot(pbmc, group.by="celltype.l1", reduction = "polyA.umap", cols = cols) + ggtitle("Level 1 Annotations")
-DimPlot(pbmc, group.by="celltype.l2", reduction = "polyA.umap", cols = cols) + ggtitle("Level 2 Annotations")
+DimPlot(pbmc, group.by="celltype.l1", reduction = "polyA.umap", cols = cols.l1) + 
+  ggtitle("Level 1 Annotations")
+DimPlot(pbmc, group.by="celltype.l2", reduction = "polyA.umap", cols = cols.l2) +
+  ggtitle("Level 2 Annotations")
 ```
 
 # Perform differential polyadenylation analysis
-Analagous to differential expression anlaysis, we can also perform differential polyadenylation analysis. As described in (our manuscript)[LINK], this function aims to identify polyA sites whose relative usage within a gene changes across different groups of cells. Here, we identify differentially polyadenylated sites between Plasma cells and naive B cells.
+Analagous to differential expression anlaysis, we can also perform differential polyadenylation analysis. As described in [our manuscript](LINK), this function aims to identify polyA sites whose relative usage within a gene changes across different groups of cells. Here, we identify differentially polyadenylated sites between Plasma cells and B cells.
 
 ```{r find_polyA_sites}
 Idents(pbmc) <- pbmc$celltype.l1
@@ -172,17 +197,18 @@ head(m.plasma)
 
 
 # Visualize polyA site usage across groups of cells
-We can also visualize the read coverage across cell groups, which demonstrates changes in transcript structure across groups of cells. The `PolyACoveragePlot` function is based off the `CoveragePlot` function in (Signac)[https://stuartlab.org/signac/], and uses the previously computed fragment file to compute local coverage.
+We can also visualize the read coverage across cell groups, which demonstrates changes in transcript structure across groups of cells. The `PolyACoveragePlot` function is based off the `CoveragePlot` function in [Signac](https://stuartlab.org/signac/), and uses the previously computed fragment file to compute local coverage.
 Beneath the coverage plot, we also display the location of polyA sites (peaks), as well as gene annotations.
 
 ```{r gene_examples,  fig.height=7, fig.width=7}
 Idents(pbmc) <- pbmc$celltype.l1
+#by default shows all polyAsites where we calculated polyA residuals in a gene
 PolyACoveragePlot(pbmc, gene = "ARF4") & 
-  scale_fill_manual(values = cols)
+  scale_fill_manual(values = cols.l1)
 PolyACoveragePlot(pbmc, gene = "TMBIM6") & 
-  scale_fill_manual(values = cols)
+  scale_fill_manual(values = cols.l1)
 PolyACoveragePlot(pbmc, gene = "EIF1") & 
-  scale_fill_manual(values = cols)
+  scale_fill_manual(values = cols.l1)
 ```
 
 
