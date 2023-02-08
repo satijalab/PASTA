@@ -2,8 +2,8 @@ Package: PASTA
 Title: PolyA Site usage adjusting for Transcript Abundance
 Version: 0.0.0.9000
 Authors@R: c( 
-    person("Madeline", "Kowalski", "mkowalski@nygenome.org", role = c("cre")),
-    person("Harm", "Wessels", "hwessels@nygenome.org", role = c("aut"))
+    person(given = "Madeline", family = "Kowalski", email = "mkowalski@nygenome.org", role = c("cre")),
+    person(given = "Harm", family = "Wessels", email = "hwessels@nygenome.org", role = c("aut"))
     )
 Description: What the package does (one paragraph).
 License: MIT + file LICENSE
