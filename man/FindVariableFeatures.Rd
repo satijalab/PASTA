@@ -7,7 +7,7 @@
 \method{FindVariableFeatures}{polyAsiteAssay}(
   object,
   nfeatures = 2000,
-  slot = "data",
+  selection.method = "residuals",
   gene.names = "symbol",
   ...
 )
@@ -18,6 +18,9 @@
 \item{nfeatures}{Number of features to select as top variable features.}
 
 \item{gene.names}{Column in meta features that contains gene names. At most one feature per gene will be selected.}
+
+\item{method}{How to calculate polyA residuals. If method = "residuals", will use select the most variable in
+each gene and then pick the top nfeatures.}
 }
 \description{
 Finds variable features based on polyA residuals

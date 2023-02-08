@@ -9,7 +9,6 @@
 #'
 #' @param object Seurat object containing a polyAsiteAssay
 #' @param assay Name of polyAsiteAssay to be used in calculating polyAresiduals
-#' @param new.assay.name Name of new assay containing polyA residuals.
 #' @param features Features to include in calculation of polyA residuals.
 #' Default is to use all features.
 #' @param background Identity of cells to use as background.
@@ -18,7 +17,10 @@
 #' Default is symbol. 
 #' @param min.counts.background Features with at least this many counts in the background cells are included in calculation
 #' @param min.variance Sets minimum variance. Default is 0.1.
-#' @param do.center Return the centered residuals. Defautl is TRUE.
+#' @param do.center Return the centered residuals. Default is TRUE.
+#' @param do.scale Return the scaled residuals. Default is TRUE.
+#' @param residuals.max Clip residuals above this value. Default is 10. If NULL, then no clipping.
+#' @param residuals.min Clip residuals below this value. Default is -10. If NULL, then no clipping.
 #' @param verbose Print messages.
 #'
 #'
@@ -29,13 +31,15 @@
 #'
 CalcPolyAResiduals <- function(object,
                                assay="polyA",
-                               new.assay.name = "polyAresiduals",
                                features=NULL,
                                background = NULL,
                                gene.names = "symbol",
                                min.counts.background = 5,
                                min.variance = 0.1,
-                               do.center=TRUE,
+                               do.scale = FALSE,
+                               do.center = FALSE,
+                               residuals.max = NULL, 
+                               residuals.min = NULL,
                                verbose=TRUE)
  {
   if(verbose) {
@@ -43,6 +47,7 @@ CalcPolyAResiduals <- function(object,
   }
 
   #if features in NULL, then specify all features in polyA assay
+  #TO DO: change to all features with a gene annotation
   if (is.null(features)) {
     features <- rownames(GetAssayData(object, assay=assay))
   }
@@ -50,6 +55,7 @@ CalcPolyAResiduals <- function(object,
 
   #if background is NULl, then make a dummy variable
   if (is.null(background)) {
+    message("Using all cells in order to estimate background distribution")
     object$dummy <- "all"
     Idents(object) <- object$dummy
     background.use = "all"
@@ -58,12 +64,20 @@ CalcPolyAResiduals <- function(object,
     if (!(background %in% unique(Idents(object)))) {
       stop("background must be one of the Idents of seurat object")
     }
+    message(paste0("Using", background, " as background distribution"))
   }
 
 
   #check if symbols are contained in meta features
-  if (!(gene.names %in% colnames(object[[assay]][[]])) | sum(is.na(object[[assay]][[]][features,gene.names])) > 0) {
-    stop("Symbol must be present for all features in meta.features")
+  if (!(gene.names %in% colnames(object[[assay]][[]]))) {
+    stop("Gene.names column not found in meta.features, please make sure 
+         you are specific gene.names correctly")
+  }
+  
+  if (sum(is.na(object[[assay]][[]][features,gene.names])) > 0) {
+    features.no.anno <- features[is.na(object[[assay]][[]][features,gene.names])]
+    message(paste0("Removing ", length(features.no.anno), " sites without a gene annotation"))
+    features <- setdiff(features, features.no.anno)
   }
 
 
@@ -121,18 +135,26 @@ CalcPolyAResiduals <- function(object,
     message("Regularizing Dirichlet Multionmial Variance")
   }
 
-  var.reg <- RegDMVar(ec = ec, var = var, m = m, m.background = m.background, background.dist = background.dist,
-                      gene.sum = gene.sum, background.cells = background.cells, min.variance = min.variance)
+  var.reg <- RegDMVar(ec = ec, var = var, m = m, m.background = m.background, 
+                      background.dist = background.dist,
+                      gene.sum = gene.sum, background.cells = background.cells,
+                      min.variance = min.variance)
 
   #calculate residual matrix
   residual.matrix <- (m-ec) / sqrt(var.reg)
   residual.matrix <- as.matrix(residual.matrix, nrow = nrow(residual.matrix))
   #M1 <- as(residual.matrix, "dgCMatrix")
   
-  if (do.center) {
-    residual.matrix <- scale(residual.matrix, center=TRUE, scale=FALSE)
+  residual.matrix <- scale(residual.matrix, center=do.center, scale= do.scale )
+  
+  if (!is.null(residuals.max)) {
+    residual.matrix[residual.matrix > residuals.max] <- residuals.max
   }
-
+  
+  if (!is.null(residuals.min)) {
+    residual.matrix[residual.matrix < residuals.min] <- residuals.min
+  }
+  
   #change default assay
   DefaultAssay(object = object) <- assay
   #need to met SetAssayData, GetAssayData for residuals
@@ -163,7 +185,7 @@ GetBackgroundDist <- function(object, features, background, gene.names, assay,  
   # returns the pseudobulked background distribution for peaks specified
   # must contain gene information in meta data
 
-  nt.pseudo <- AverageExpression(object, features = features, assays = assay, slot="counts")
+  suppressMessages(nt.pseudo <- AverageExpression(object, features = features, assays = assay, slot="counts"))
   nt.pseudo <- data.frame(background = nt.pseudo[[1]][,background]) #subset just the background
   nt.pseudo$background <- nt.pseudo$background * sum(Idents(object)==background)
   nt.pseudo$gene <- paste0(object[[assay]][[]][features, gene.names], "_", object[[assay]]@meta.features[features, "strand"])
