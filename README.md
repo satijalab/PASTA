@@ -16,6 +16,7 @@ We have implemented these methods in an R package PASTA (PolyA Site analysis usi
 To install PASTA, please run:
 
 ```{R}
+<<<<<<< HEAD
 #install remotes and BiocManager if necessary 
 if (!requireNamespace("remotes", quietly = TRUE))
     install.packages("remotes")
@@ -30,6 +31,9 @@ BiocManager::install(c("BSgenome.Hsapiens.UCSC.hg38", "EnsDb.Hsapiens.v86",
 BiocManager::install("Bioconductor/GenomeInfoDb")
 
 remotes::install_github("satijalab/PASTA")
+=======
+remotes::install_git("satijalab/PASTA")
+>>>>>>> 44b32218db2541453f0a448401e274bdf9e690f8
 ```
 
 # Vignette
