@@ -2,14 +2,14 @@
 % Please edit documentation in R/visualizations.R
 \name{PolyACoveragePlot}
 \alias{PolyACoveragePlot}
-\title{Coverage Plot for genes based on residuals}
+\title{Coverage Plot for genes based on polyA sites.}
 \usage{
 PolyACoveragePlot(
   object,
   region.plot = NULL,
   assay = "polyA",
   gene = NULL,
-  gene.names = "symbol",
+  gene.names = "Gene_Symbol",
   extend.downstream = 500,
   extend.upstream = 500,
   annotation = "transcript",
@@ -19,17 +19,24 @@ PolyACoveragePlot(
 \arguments{
 \item{object}{Seurat object}
 
-\item{assay}{Name of polyAsite.Assay}
+\item{assay}{Name of polyAsite.Assay Default is "polyA"}
 
-\item{gene}{Name of gene to plot. Will extract all}
+\item{gene}{Name of gene to plot.}
 
 \item{gene.names}{Column containing the gene where each polyA site is annotated.}
+
+\item{extend.downstream}{How far to extend coverage upstream. Default is 500 bp.}
+
+\item{annotation}{Default is "transcript". Use "gene" if you only want to see one isoform.}
 
 \item{region}{Region to plot. If NULL (default), will show all polyA sites within the
 gene for which polyA residuals have been calculated. If region is not specified and
 polyA residuals have not been calculated, all polyA sites within a gene will be shown.}
 }
 \description{
-Calculate avergae length of tandem 3'UTRs
+Coverage Plot for genes based on polyA sites.
+}
+\seealso{
+\code{\link[Signac]{CoveragePlot}}  for additional parameters
 }
 \concept{visualization}

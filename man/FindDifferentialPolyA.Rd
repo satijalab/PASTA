@@ -2,7 +2,8 @@
 % Please edit documentation in R/differential_polyA.R
 \name{FindDifferentialPolyA}
 \alias{FindDifferentialPolyA}
-\title{Find polyA sites that are differentially used across cells.}
+\title{Find polyA sites that are differentially used across cells, utilizing
+polyA residuals.}
 \usage{
 FindDifferentialPolyA(
   object,
@@ -11,8 +12,7 @@ FindDifferentialPolyA(
   ident.2 = NULL,
   features = NULL,
   covariates = NULL,
-  gene.names = "Gene_Symbol",
-  ...
+  gene.names = "Gene_Symbol"
 )
 }
 \arguments{
@@ -26,9 +26,11 @@ FindDifferentialPolyA(
 
 \item{features}{Features to test. Default is all features.}
 
-\item{gene.names}{Column name providing gene anotaiton fo each polyA site.}
+\item{gene.names}{Column name providing gene annotation of each polyA site.
+Default is "Gene_Symbol"}
 }
 \description{
-Find polyA sites that are differentially used across cells.
+Find polyA sites that are differentially used across cells, utilizing
+polyA residuals.
 }
 \concept{differential_polyA}

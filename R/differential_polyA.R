@@ -4,13 +4,15 @@
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-#' Find polyA sites that are differentially used across cells.
+#' Find polyA sites that are differentially used across cells, utilizing 
+#' polyA residuals.
 #' @param object An object
 #' @param assay name of polyAsite assay to test. Default is polyA. 
 #' @param ident.1 Identity class to find polyA sites for
 #' @param ident.2 A second identity class for comparison. 
 #' @param features Features to test. Default is all features.
 #' @param gene.names Column name providing gene annotation of each polyA site.
+#' Default is "Gene_Symbol"
 #' 
 #' @rdname FindDifferentialPolyA
 #' @concept differential_polyA
@@ -23,8 +25,7 @@ FindDifferentialPolyA <- function(
     ident.2 = NULL,
     features = NULL,
     covariates = NULL,
-    gene.names = "Gene_Symbol",
-     ...) {
+    gene.names = "Gene_Symbol") {
   
   if (class(object[[assay]]) != "polyAsiteAssay") {
     stop("assay is not a polyAsite assay")
