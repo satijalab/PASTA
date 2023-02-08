@@ -20,10 +20,6 @@
 #' NULL will not set a seed.
 #' @param approx Use truncated singular value decomposition to approximate PCA
 #'
-#' @importFrom irlba irlba
-#' @importFrom stats prcomp
-#' @importFrom utils capture.output
-#' 
 #' @param features Features to run PCA on
 #' @param do.scale Scale residuals before performing PCA. Default is TRUE.
 #' @param do.center Center residuals before performing PCA. Default is TRUE.

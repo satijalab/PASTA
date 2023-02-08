@@ -53,6 +53,7 @@ The files include:
 
 ```{r set_path, include=FALSE}
 dir <- "/brahms/kowalskim/data/polyA/data/zenodo/"
+library(rlang)
 ```
 
 ```{r files}

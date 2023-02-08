@@ -8,8 +8,6 @@
 #' 
 #' @importFrom GenomicRanges makeGRangesFromDataFrame 
 #' @importFrom IRanges distanceToNearest trim
-#' @importFrom S4Vectors queryHits subjectHits
-#' @importFrom BiocGenerics strand
 #' @importFrom plyranges anchor_3p mutate
 #' @importFrom GenomeInfoDb seqlevelsStyle
 #' 
