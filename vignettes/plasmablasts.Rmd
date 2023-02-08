@@ -36,13 +36,13 @@ if (!requireNamespace("BiocManager", quietly = TRUE))
     install.packages("BiocManager")
 
 #additionally install several Bioconductor dependencies
-BiocManager::install(c('BSgenome.Hsapiens.UCSC.hg38', 'EnsDb.Hsapiens.v86', 
-                       'rtracklayer','GenomicFeatures','plyranges'))
+BiocManager::install(c("BSgenome.Hsapiens.UCSC.hg38", "EnsDb.Hsapiens.v86", 
+                       "rtracklayer","GenomicFeatures","plyrange"))
 
 #get around GenomeInfoDb installation if necessary 
 BiocManager::install("Bioconductor/GenomeInfoDb")
 
-remotes::install_github("satijalab/PASTA", ref="develop")
+remotes::install_github("satijalab/PASTA")
 ```
 
 ```{r load_libaries}
