@@ -26,6 +26,9 @@ if (!requireNamespace("BiocManager", quietly = TRUE))
 BiocManager::install(c("BSgenome.Hsapiens.UCSC.hg38", "EnsDb.Hsapiens.v86", 
                        "rtracklayer","GenomicFeatures","plyranges"))
 
+#get around GenomeInfoDb installation if necessary 
+BiocManager::install("Bioconductor/GenomeInfoDb")
+
 remotes::install_github("satijalab/PASTA")
 ```
 
@@ -35,6 +38,6 @@ Check out the [PASTA vignette](http://www.satijalab.org/seurat/pasta_vignette.ht
 
 # Links
 
-[Seurat](www.satijalab.org/seurat): R package for the analysis, integration, and exploration of scRNA-seq data
+[Seurat](https://satijalab.org/seurat/): R package for the analysis, integration, and exploration of scRNA-seq data
 
 [CPA-Perturb-seq](link): Preprint describing analytical methods for characterizing APA in single-cell datasets
