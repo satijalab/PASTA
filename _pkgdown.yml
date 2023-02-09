@@ -3,5 +3,6 @@ url: ~
 destination: docs
 
 template:
-  bootstrap: 5
+  params:
+      bootswatch: flatly
 

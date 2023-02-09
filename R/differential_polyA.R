@@ -13,11 +13,13 @@
 #' @param features Features to test. Default is all features.
 #' @param gene.names Column name providing gene annotation of each polyA site.
 #' Default is "Gene_Symbol"
+#'
+#' @importFrom stats lm relevel
 #' 
 #' @rdname FindDifferentialPolyA
 #' @concept differential_polyA
 #' @export
-
+#'
 FindDifferentialPolyA <- function(
     object,
     assay = "polyA",
@@ -56,22 +58,18 @@ FindDifferentialPolyA <- function(
                                         cells.2 = WhichCells(object, idents = ident.2),
                                         features = features,
                                         assay=assay)
-  
-  #
+
   df <- data.frame(idents = Idents(object))
   for (i in 1:length(covariates)) {
     df[,i+1] <- object[[]][,match(covariates[[i]], colnames(object[[]]))]
-    
   }
   colnames(df) <- c("ident", covariates)
   
   r.matrix <- object[[assay]]@scale.data
   df$ident <- relevel(df$ident, ref = ident.2)     
-  
 
   sub <- subset(df, ident %in% c(ident.1, ident.2))
   r.matrix.sub <- r.matrix[,rownames(sub)]
-
 
   all.models <- lapply(
     X = 1:nrow(x = r.matrix.sub),
@@ -105,7 +103,7 @@ FindDifferentialPolyA <- function(
   main.effects$p_val_adj[main.effects$p_val_adj  > 1] <- 1
   
   rownames(main.effects) <- main.effects$peak
-  main.effects.return <- main.effects[,c("Estimate", "p.value", "p_val_adj", "percent.1", "percent.2", "symbol" )]
+  main.effects.return <- main.effects[,c("Estimate", "p.value", "p_val_adj", "percent.1", "percent.2", "symbol")]
   
   #order by p-value
   main.effects.return <- main.effects.return[ with(main.effects.return, order(p_val_adj, -Estimate)),]
