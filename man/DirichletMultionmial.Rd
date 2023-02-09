@@ -9,13 +9,19 @@ DirichletMultionmial(
   background.dist,
   m.background,
   gene.sum,
-  ncells = ncells
+  ncells
 )
 }
 \arguments{
 \item{gene.test}{which gene to use}
 
 \item{background.dist}{dataframe containing the isoform ratios for each}
+
+\item{m.background}{matrix of background distribution}
+
+\item{gene.sum}{sum of count within each gene for each cell}
+
+\item{ncells}{number of cells}
 }
 \value{
 Returns a list where first element is matrix of expected values for each peak within the genes,

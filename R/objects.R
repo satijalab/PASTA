@@ -25,8 +25,7 @@
 #'
 polyAsiteAssay <- setClass(
   Class = "polyAsiteAssay",
-  contains = "ChromatinAssay",
-  slots = list(center.scale.data = "matrix")
+  contains = "ChromatinAssay"
 )
 
 
@@ -40,7 +39,6 @@ polyAsiteAssay <- setClass(
 #' row names of the matrix.
 #'
 #' @param counts Unnormalized data (raw counts)
-#' @param data Normalized data; if provided, do not pass counts
 #' @param min.cells Include features detected in at least this many cells.
 #' Will subset the counts matrix as well.
 #' To reintroduce excluded features, create a new object with a lower cutoff.
@@ -166,13 +164,6 @@ merge.polyAsiteAssay <- function(x = NULL,
   chromatin.m <- merge(x = chromatin.x, y = chromatin.y, 
                        add.cells.ids = add.cell.ids, ...)
   chromatin.m <- as(object = chromatin.m, Class = 'polyAsiteAssay')
-  
-  # Do center.scale.data slot subsetting
-  #if (dim(x@center.scale.data)[1] >0 ) {
-  #  center.scale <- GetAssayData(x, slot = "center.scale.data" )
-  #  center.scale <- center.scale[features, cells]
-  #  chromatin <- SetAssayData(chromatin, slot = "center.scale.data", new.data = center.scale)
-  #}
   return(chromatin.m)
 }
 

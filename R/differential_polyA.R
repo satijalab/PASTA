@@ -11,6 +11,7 @@
 #' @param ident.1 Identity class to find polyA sites for
 #' @param ident.2 A second identity class for comparison. 
 #' @param features Features to test. Default is all features.
+#' @param covariates Vector of covariates to include in linear model.
 #' @param gene.names Column name providing gene annotation of each polyA site.
 #' Default is "Gene_Symbol"
 #' 

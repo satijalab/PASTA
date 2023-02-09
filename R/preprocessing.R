@@ -117,14 +117,16 @@ ReadPolyApipe <- function(counts.file, peaks.file = NULL, sep = c(":",",",":"),
 #' @param object Object containing a polyAsite assay
 #' @param nfeatures Number of features to select as top variable features.
 #' @param gene.names Column in meta features that contains gene names. At most one feature per gene will be selected.
-#' @param method How to calculate polyA residuals. If method = "residuals", will use select the most variable in 
-#' each gene and then pick the top nfeatures.
+#' @param selection.method How to calculate polyA residuals. If "residuals" (default), 
+#' will rank all polyA sites by their variance and pick at most 1 polyA site per gene. 
+#' Otherwise, will use Seurat FindVariableFeatures functions.
 #' 
 #' @rdname FindVariableFeatures
 #' @importFrom utils head tail
 #' @concept preprocessing
 #' @export
 #' @method FindVariableFeatures polyAsiteAssay
+#' @seealso \code{\link[Seurat]{FindVariableFeatures}} for additional parameters.
 
 FindVariableFeatures.polyAsiteAssay <- function(
     object,

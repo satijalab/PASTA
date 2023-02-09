@@ -26,6 +26,8 @@ FindDifferentialPolyA(
 
 \item{features}{Features to test. Default is all features.}
 
+\item{covariates}{Vector of covariates to include in linear model.}
+
 \item{gene.names}{Column name providing gene annotation of each polyA site.
 Default is "Gene_Symbol"}
 }

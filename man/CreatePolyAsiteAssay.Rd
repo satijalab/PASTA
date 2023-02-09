@@ -69,8 +69,6 @@ fragment file.}
 \item{verbose}{Display messages}
 
 \item{...}{Additional arguments passed to \code{\link{CreateFragmentObject}}}
-
-\item{data}{Normalized data; if provided, do not pass counts}
 }
 \description{
 Create a \code{\link{polyAsiteAssay}} object from a count matrix or
