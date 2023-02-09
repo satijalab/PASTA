@@ -26,8 +26,6 @@ if (!requireNamespace("BiocManager", quietly = TRUE))
 BiocManager::install(c("BSgenome.Hsapiens.UCSC.hg38", "EnsDb.Hsapiens.v86", 
                        "rtracklayer","GenomicFeatures","plyranges"))
 
-#get around GenomeInfoDb installation if necessary 
-BiocManager::install("Bioconductor/GenomeInfoDb")
 
 remotes::install_github("satijalab/PASTA")
 ```
