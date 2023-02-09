@@ -22,11 +22,11 @@ While scRNA-seq has been widely applied to characterize cellular heterogeneity i
 
 In [Kowalski\* , Wessels\*, Linder\*](link]) et al, we introduce a statistical framework, based on the Dirichlet multinomial distribution, to characterize heterogeneity in the relative use of polyA sites at single-cell resolution. We calculate polyA-residuals, which indicate - for each polyA site in each cell - the degree of over or underutilization compared to a background model. We use these residuals for both supervised differential analysis (differential polyadenylation between groups of cells), but also unsupervised analysis and visualization.
 
-
 We have implemented these methods in an R package [PASTA (PolyA Site analysis using relative Transcript Abundance)](https://github.com/satijalab/PASTA) that interfaces directly with Seurat. In this vignette, we demonstrate how to use PASTA and Seurat to analyze a dataset of 49,958 circulating human peripheral blood mononuclear cells (PBMC). This vignette demonstrates how to reproduce results from Figure 6 in [our manuscript](LINK). While this represents an initial demonstration of PASTA, we will be adding significant functionality and documentation in future releases.
 
 First, we install PASTA and dependencies. Note: At the time of release of this vignette, there was an issue with GenomeInfoDb.
 You may have to install as described [here](https://github.com/Bioconductor/GenomeInfoDb/issues/82), if you do not have the latest version of Bioconductor installed. 
+
 
 ```{r install_packages, eval=FALSE}
 #install remotes and BiocManager if necessary 
@@ -206,7 +206,6 @@ PolyACoveragePlot(pbmc, gene = "EIF1") &
 PolyACoveragePlot(pbmc, gene = "TMBIM6") & 
   scale_fill_manual(values = cols.l1)
 ```
-
 
 
 <details>
