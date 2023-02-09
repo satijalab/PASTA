@@ -10,6 +10,8 @@
 #' @importFrom IRanges distanceToNearest trim
 #' @importFrom plyranges anchor_3p mutate
 #' @importFrom GenomeInfoDb seqlevelsStyle
+#' @importFrom methods slot
+#' @importFrom utils read.table
 #' 
 #' @return Seurat object with annotated meta.features for polyAsiteAssay. Keeps all features 
 #' in original matrix, but annotations columns will be populated with NAs if a feature does not 

@@ -222,7 +222,13 @@ GetBackgroundDist <- function(object, features, background, gene.names, assay,  
 #' @importFrom MGLM MGLMfit
 #' @concept residuals
 #'
-DirichletMultionmial <- function(gene.test, background.dist, m.background, gene.sum, ncells = ncells) {
+DirichletMultionmial <- function(
+  gene.test,
+  background.dist,
+  m.background,
+  gene.sum,
+  ncells
+) {
   peaks <- background.dist$peak[background.dist$gene == gene.test]
   t <- m.background[rownames(m.background) %in% peaks,]
   t <- t(t)
