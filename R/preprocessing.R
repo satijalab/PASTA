@@ -120,6 +120,7 @@ ReadPolyApipe <- function(counts.file, peaks.file = NULL, sep = c(":",",",":"),
 #' @param selection.method How to calculate polyA residuals. If "residuals" (default), 
 #' will rank all polyA sites by their variance and pick at most 1 polyA site per gene. 
 #' Otherwise, will use Seurat FindVariableFeatures functions.
+#' @param ... Arguments passed to other methods
 #' 
 #' @rdname FindVariableFeatures
 #' @importFrom utils head tail

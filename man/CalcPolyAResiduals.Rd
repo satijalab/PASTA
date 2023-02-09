@@ -41,9 +41,9 @@ Default is symbol.}
 
 \item{do.center}{Return the centered residuals. Default is TRUE.}
 
-\item{residuals.max}{Clip residuals above this value. Default is 10. If NULL, then no clipping.}
+\item{residuals.max}{Clip residuals above this value. Default is NULL (no clipping).}
 
-\item{residuals.min}{Clip residuals below this value. Default is -10. If NULL, then no clipping.}
+\item{residuals.min}{Clip residuals below this value. Default is NULL (no clipping).}
 
 \item{verbose}{Print messages.}
 }

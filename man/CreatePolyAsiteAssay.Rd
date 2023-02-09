@@ -71,8 +71,8 @@ fragment file.}
 \item{...}{Additional arguments passed to \code{\link{CreateFragmentObject}}}
 }
 \description{
-Create a \code{\link{polyAsiteAssay}} object from a count matrix or
-normalized data matrix. The expected format of the input matrix is features x
+Create a \code{\link{polyAsiteAssay}} object from a count matrix.
+The expected format of the input matrix is features x
 cells. A set of genomic ranges must be supplied along with the matrix, with
 the length of the ranges equal to the number of rows in the matrix. If a set
 of genomic ranges are not supplied, they will be extracted from the

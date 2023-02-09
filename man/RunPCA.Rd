@@ -2,22 +2,54 @@
 % Please edit documentation in R/dimensional_reduction.R
 \name{RunPCA.polyAsiteAssay}
 \alias{RunPCA.polyAsiteAssay}
-\title{RunPCA only PolyA site assay}
+\title{RunPCA on PolyA site assay}
 \usage{
 \method{RunPCA}{polyAsiteAssay}(
   object,
+  assay = NULL,
   features = NULL,
+  npcs = 50,
+  rev.pca = FALSE,
+  weight.by.var = TRUE,
+  verbose = TRUE,
+  ndims.print = 1:5,
+  nfeatures.print = 30,
+  reduction.key = "PC_",
+  seed.use = 42,
   do.scale = TRUE,
   do.center = TRUE,
   residuals.max = 10,
   residuals.min = -10,
-  verbose = TRUE
+  ...
 )
 }
 \arguments{
 \item{object}{A polyAsiteAssay}
 
+\item{assay}{Name of Assay PCA is being run on}
+
 \item{features}{Features to run PCA on}
+
+\item{npcs}{Total Number of PCs to compute and store (50 by default)}
+
+\item{rev.pca}{By default computes the PCA on the cell x gene matrix. Setting
+to true will compute it on gene x cell matrix.}
+
+\item{weight.by.var}{Weight the cell embeddings by the variance of each PC
+(weights the gene loadings if rev.pca is TRUE)}
+
+\item{verbose}{Print the top genes associated with high/low loadings for
+the PCs}
+
+\item{ndims.print}{PCs to print genes for}
+
+\item{nfeatures.print}{Number of genes to print for each PC}
+
+\item{reduction.key}{dimensional reduction key, specifies the string before
+the number for the dimension names. PC by default}
+
+\item{seed.use}{Set a random seed. By default, sets the seed to 42. Setting
+NULL will not set a seed.}
 
 \item{do.scale}{Scale residuals before performing PCA. Default is TRUE.}
 
@@ -27,9 +59,9 @@
 
 \item{residuals.min}{Clip residuals below this value before performing PCA (default is -10)}
 
-\item{verbose}{Verbose output}
+\item{approx}{Use truncated singular value decomposition to approximate PCA}
 }
 \description{
-RunPCA only PolyA site assay
+RunPCA on PolyA site assay
 }
 \concept{dimensional_reduction}

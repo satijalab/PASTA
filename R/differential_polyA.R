@@ -53,13 +53,7 @@ FindDifferentialPolyA <- function(
     }
   }
   features <- features %||% rownames(x = object[[assay]]@scale.data)
-
-  #check percentage difference
-  percent.diff <- percentage.difference(object, cells.1 = WhichCells(object, idents = ident.1 ),
-                                        cells.2 = WhichCells(object, idents = ident.2),
-                                        features = features,
-                                        assay=assay)
-
+  
   df <- data.frame(idents = Idents(object))
   for (i in 1:length(covariates)) {
     df[,i+1] <- object[[]][,match(covariates[[i]], colnames(object[[]]))]
@@ -138,36 +132,5 @@ percentage.usage <- function( object,
   return(as.vector(df2$frac))
 }
 
-
-
-percentage.difference <- function(object, cells.1, cells.2, features, assay) {
-  df <- data.frame(peak=features)
-  meta <- object[[assay]]@meta.features
-  df$symbol <- meta[features,"Gene_Symbol"]
-  
-  peaks.tmp <- rownames(dplyr::filter(meta, Gene_Symbol %in% df$symbol))
-  
-  df2 <- data.frame(peak=peaks.tmp)
-  df2$counts1 <- rowSums(object[[assay]]@counts[peaks.tmp, cells.1])
-  df2$counts2 <- rowSums(object[[assay]]@counts[peaks.tmp, cells.2])
-  df2$gene <-meta[df2$peak, "Gene_Symbol"]
-  
-  sum1 <- aggregate(df2$counts1, by=list(gene=df2$gene), FUN=sum)
-  sum2 <- aggregate(df2$counts2, by=list(gene=df2$gene), FUN=sum)
-  colnames(sum1)[2] <- "sum1"
-  colnames(sum2)[2] <- "sum2"
-  
-  df2 <- merge(df2, sum1, by="gene")
-  df2 <- merge(df2, sum2, by="gene")
-  
-  df2$frac1 <- df2$counts1/df2$sum1
-  df2$frac2 <- df2$counts2/df2$sum2
-  
-  df2$percentage_diff <- df2$frac1 - df2$frac2
-  rownames(df2) <- df2$peak
-  df <- df2[features,"percentage_diff"]
-  names(df) <- features
-  return(as.vector(df))
-}
 
 

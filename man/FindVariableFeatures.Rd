@@ -22,6 +22,8 @@ will rank all polyA sites by their variance and pick at most 1 polyA site per ge
 Otherwise, will use Seurat FindVariableFeatures functions.}
 
 \item{gene.names}{Column in meta features that contains gene names. At most one feature per gene will be selected.}
+
+\item{...}{Arguments passed to other methods}
 }
 \description{
 Finds variable features based on polyA residuals

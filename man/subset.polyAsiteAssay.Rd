@@ -6,6 +6,13 @@
 \usage{
 \method{subset}{polyAsiteAssay}(x, features = NULL, cells = NULL, ...)
 }
+\arguments{
+\item{x}{A polyAsiteAssay}
+
+\item{features}{Which features to retain}
+
+\item{cells}{Which cells to retain}
+}
 \description{
 Subset a polyA site assay
 }
