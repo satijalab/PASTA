@@ -20,12 +20,12 @@ knitr::opts_chunk$set(
 
 While scRNA-seq has been widely applied to characterize cellular heterogeneity in gene expression levels, these datasets can also be leveraged to explore variation in transcript structure as well. For example, reads from 3’ scRNA-seq datasets can be leveraged to quantify the relative usage of multiple polyadenylation (polyA) sites within the same gene.
 
-In [Kowalski\* , Wessels\*, Linder\*](link]) et al, we introduce a statistical framework, based on the Dirichlet multinomial distribution, to characterize heterogeneity in the relative use of polyA sites at single-cell resolution. We calculate polyA-residuals, which indicate - for each polyA site in each cell - the degree of over or underutilization compared to a background model. We use these residuals for both supervised differential analysis (differential polyadenylation between groups of cells), but also unsupervised analysis and visualization.
+In [Kowalski\* , Wessels\*, Linder\*](link) et al, we introduce a statistical framework, based on the Dirichlet multinomial distribution, to characterize heterogeneity in the relative use of polyA sites at single-cell resolution. We calculate polyA-residuals, which indicate - for each polyA site in each cell - the degree of over or underutilization compared to a background model. We use these residuals for both supervised differential analysis (differential polyadenylation between groups of cells), but also unsupervised analysis and visualization.
 
-We have implemented these methods in an R package [PASTA (PolyA Site analysis using relative Transcript Abundance)](link to the Github) that interfaces directly with Seurat. In this vignette, we demonstrate how to use PASTA and Seurat to analyze a dataset of 49,958 circulating human peripheral blood mononuclear cells (PBMC). This vignette demonstrates how to reproduce results from Figure 6 in [our manuscript](LINK). While this represents an initial demonstration of PASTA, we will be adding significant functionality and documentation in future releases.
+We have implemented these methods in an R package [PASTA (PolyA Site analysis using relative Transcript Abundance)](https://github.com/satijalab/PASTA) that interfaces directly with Seurat. In this vignette, we demonstrate how to use PASTA and Seurat to analyze a dataset of 49,958 circulating human peripheral blood mononuclear cells (PBMC). This vignette demonstrates how to reproduce results from Figure 6 in [our manuscript](LINK). While this represents an initial demonstration of PASTA, we will be adding significant functionality and documentation in future releases.
 
-Note: At the time of release of this vignette, there was an issue with GenomeInfoDb.
-Please install as described [here](https://github.com/Bioconductor/GenomeInfoDb/issues/82).
+First, we install PASTA and dependencies. Note: At the time of release of this vignette, there was an issue with GenomeInfoDb.
+You may have to install as described [here](https://github.com/Bioconductor/GenomeInfoDb/issues/82), if you do not have the latest version of Bioconductor installed. 
 
 
 ```{r install_packages, eval=FALSE}
@@ -36,26 +36,24 @@ if (!requireNamespace("BiocManager", quietly = TRUE))
     install.packages("BiocManager")
 
 #additionally install several Bioconductor dependencies
-BiocManager::install(c("BSgenome.Hsapiens.UCSC.hg38", "EnsDb.Hsapiens.v86", 
-                       "rtracklayer","GenomicFeatures","plyrange"))
-
-#get around GenomeInfoDb installation if necessary 
-BiocManager::install("Bioconductor/GenomeInfoDb")
+BiocManager::install(c("BSgenome.Hsapiens.UCSC.hg38", "EnsDb.Hsapiens.v86", "rtracklayer","GenomicFeatures","plyranges"))
 
 remotes::install_github("satijalab/PASTA")
 ```
 
 ```{r load_libaries}
-library(PASTA) #also loads Seurat and Signac
+#loading PASTA also loads Seurat and Signac
+library(PASTA) 
 library(ggplot2)
 library(EnsDb.Hsapiens.v86)
-
 ```
-The data for this vignette can be found on the following [site](zenodo_link): 
+
+The data for this vignette can be found on the following [site](https://zenodo.org/record/7617270#.Y-RcwOzMJzU): 
 The files include: 
 
 ```{r set_path, include=FALSE}
 dir <- "/brahms/kowalskim/data/polyA/data/zenodo/"
+library(rlang)
 ```
 
 ```{r files}
@@ -69,8 +67,7 @@ metadata.file <- paste0(dir, "PBMC_meta_data.csv")
 
 
 # Create Seurat object and annotate cell types
-First, we create a Seurat object based on a pre-quantified scRNA-seq expression matrix of human PBMC. We then annotate cell types using our Azimuth reference, as described here.
-[here](https://satijalab.github.io/azimuth/articles/run_azimuth_tutorial.html). 
+First, we create a Seurat object based on a pre-quantified scRNA-seq expression matrix of human PBMC. We then annotate cell types using our Azimuth reference, as described [here](https://satijalab.github.io/azimuth/articles/run_azimuth_tutorial.html). 
 ```{r read_rna,  fig.height=5, fig.width=7, message=FALSE, results='hide'}
 library(Azimuth)
 counts = Read10X(dir)
@@ -86,8 +83,7 @@ obj.list <- SplitObject(pbmc, split.by = "donor")
 obj.list <- lapply(obj.list, FUN = RunAzimuth , reference = "pbmcref")
 pbmc <- merge(obj.list[[1]], obj.list[2:length(obj.list)], merge.dr = "ref.umap")
 
-#not that Azimuth provides higher-resolution annotations with 
-# pbmc$predicted.celltype.l2
+# note that Azimuth provides higher-resolution annotations with pbmc$celltype.l2
 Idents(pbmc) <- pbmc$celltype.l1
 
 library(RColorBrewer)
@@ -125,8 +121,7 @@ polyA.assay = subset(polyA.assay, cells = cells)
 pbmc = subset(pbmc, cells = cells)
 pbmc[['polyA']] <- polyA.assay #add polyA assay to Seurat object 
 DefaultAssay(pbmc) <- "polyA"
-pbmc 
-
+pbmc
 ```
 
 
@@ -202,7 +197,7 @@ head(m.plasma, 10)
 We can also visualize the read coverage across cell groups, which demonstrates changes in transcript structure across groups of cells. The `PolyACoveragePlot` function is based off the `CoveragePlot` function in [Signac](https://stuartlab.org/signac/), and uses the previously computed fragment file to compute local coverage.
 Beneath the coverage plot, we also display the location of polyA sites (peaks), as well as gene annotations. Note that in each of these examples, Plasmablasts exhibit increased utilization of the proximal polyA site (i.e. 3' UTR shortening)
 
-```{r gene_examples,  fig.height=7, fig.width=7}
+```{r gene_examples, fig.height=7, fig.width=7}
 Idents(pbmc) <- pbmc$celltype.l1
 #by default shows all polyAsites where we calculated polyA residuals in a gene
 PolyACoveragePlot(pbmc, gene = "EIF1") & 
@@ -212,4 +207,9 @@ PolyACoveragePlot(pbmc, gene = "TMBIM6") &
 ```
 
 
-
+<details>
+  <summary>**Session Info**</summary>
+```{r}
+sessionInfo()
+```
+</details>

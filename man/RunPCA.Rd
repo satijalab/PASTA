@@ -11,11 +11,12 @@
   do.center = TRUE,
   residuals.max = 10,
   residuals.min = -10,
-  verbose = TRUE,
-  ...
+  verbose = TRUE
 )
 }
 \arguments{
+\item{object}{A polyAsiteAssay}
+
 \item{features}{Features to run PCA on}
 
 \item{do.scale}{Scale residuals before performing PCA. Default is TRUE.}
@@ -26,30 +27,7 @@
 
 \item{residuals.min}{Clip residuals below this value before performing PCA (default is -10)}
 
-\item{verbose}{Print the top genes associated with high/low loadings for
-the PCs}
-
-\item{assay}{Name of Assay PCA is being run on}
-
-\item{npcs}{Total Number of PCs to compute and store (50 by default)}
-
-\item{rev.pca}{By default computes the PCA on the cell x gene matrix. Setting
-to true will compute it on gene x cell matrix.}
-
-\item{weight.by.var}{Weight the cell embeddings by the variance of each PC
-(weights the gene loadings if rev.pca is TRUE)}
-
-\item{ndims.print}{PCs to print genes for}
-
-\item{nfeatures.print}{Number of genes to print for each PC}
-
-\item{reduction.key}{dimensional reduction key, specifies the string before
-the number for the dimension names. PC by default}
-
-\item{seed.use}{Set a random seed. By default, sets the seed to 42. Setting
-NULL will not set a seed.}
-
-\item{approx}{Use truncated singular value decomposition to approximate PCA}
+\item{verbose}{Verbose output}
 }
 \description{
 RunPCA only PolyA site assay

@@ -19,8 +19,8 @@
 #' @param min.variance Sets minimum variance. Default is 0.1.
 #' @param do.center Return the centered residuals. Default is TRUE.
 #' @param do.scale Return the scaled residuals. Default is TRUE.
-#' @param residuals.max Clip residuals above this value. Default is 10. If NULL, then no clipping.
-#' @param residuals.min Clip residuals below this value. Default is -10. If NULL, then no clipping.
+#' @param residuals.max Clip residuals above this value. Default is NULL (no clipping).
+#' @param residuals.min Clip residuals below this value. Default is NULL (no clipping).
 #' @param verbose Print messages.
 #'
 #'
@@ -225,7 +225,13 @@ GetBackgroundDist <- function(object, features, background, gene.names, assay,  
 #' @importFrom MGLM MGLMfit
 #' @concept residuals
 #'
-DirichletMultionmial <- function(gene.test, background.dist, m.background, gene.sum, ncells) {
+DirichletMultionmial <- function(
+  gene.test,
+  background.dist,
+  m.background,
+  gene.sum,
+  ncells
+) {
   peaks <- background.dist$peak[background.dist$gene == gene.test]
   t <- m.background[rownames(m.background) %in% peaks,]
   t <- t(t)

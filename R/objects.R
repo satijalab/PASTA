@@ -21,8 +21,6 @@
 #' @exportClass polyAsiteAssay
 #' @concept assay
 #'
-#'
-#'
 polyAsiteAssay <- setClass(
   Class = "polyAsiteAssay",
   contains = "ChromatinAssay"
@@ -31,8 +29,8 @@ polyAsiteAssay <- setClass(
 
 #' Create polyA object
 #'
-#' Create a \code{\link{polyAsiteAssay}} object from a count matrix or
-#' normalized data matrix. The expected format of the input matrix is features x
+#' Create a \code{\link{polyAsiteAssay}} object from a count matrix.
+#' The expected format of the input matrix is features x
 #' cells. A set of genomic ranges must be supplied along with the matrix, with
 #' the length of the ranges equal to the number of rows in the matrix. If a set
 #' of genomic ranges are not supplied, they will be extracted from the
@@ -169,6 +167,10 @@ merge.polyAsiteAssay <- function(x = NULL,
 
 
 #' Subset a polyA site assay 
+#'
+#' @param x A polyAsiteAssay
+#' @param features Which features to retain
+#' @param cells Which cells to retain
 #' 
 #' @export
 #' @concept objects

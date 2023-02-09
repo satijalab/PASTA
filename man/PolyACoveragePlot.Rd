@@ -19,24 +19,28 @@ PolyACoveragePlot(
 \arguments{
 \item{object}{Seurat object}
 
+\item{region.plot}{Region to plot. If NULL (default), will show all polyA sites within the
+gene for which polyA residuals have been calculated. If region is not specified and
+polyA residuals have not been calculated, all polyA sites within a gene will be shown.}
+
 \item{assay}{Name of polyAsite.Assay Default is "polyA"}
 
 \item{gene}{Name of gene to plot.}
 
 \item{gene.names}{Column containing the gene where each polyA site is annotated.}
 
-\item{extend.downstream}{How far to extend coverage upstream. Default is 500 bp.}
+\item{extend.downstream}{How far to extend coverage downstream. Default is 500 bp.}
+
+\item{extend.upstream}{How far to extend coverage upstream. Default is 500 bp.}
 
 \item{annotation}{Default is "transcript". Use "gene" if you only want to see one isoform.}
 
-\item{region}{Region to plot. If NULL (default), will show all polyA sites within the
-gene for which polyA residuals have been calculated. If region is not specified and
-polyA residuals have not been calculated, all polyA sites within a gene will be shown.}
+\item{...}{Additional parameters passed to \code{\link[Signac]{CoveragePlot}}}
 }
 \description{
 Coverage Plot for genes based on polyA sites.
 }
 \seealso{
-\code{\link[Signac]{CoveragePlot}}  for additional parameters
+\code{\link[Signac]{CoveragePlot}} for additional parameters
 }
 \concept{visualization}

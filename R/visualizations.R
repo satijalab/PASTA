@@ -3,21 +3,22 @@
 #' Coverage Plot for genes based on polyA sites.
 #'
 #' @param object Seurat object
-#' @param region Region to plot. If NULL (default), will show all polyA sites within the 
+#' @param region.plot Region to plot. If NULL (default), will show all polyA sites within the 
 #' gene for which polyA residuals have been calculated. If region is not specified and 
 #' polyA residuals have not been calculated, all polyA sites within a gene will be shown.
 #' @param assay Name of polyAsite.Assay Default is "polyA"
 #' @param gene Name of gene to plot.
 #' @param gene.names Column containing the gene where each polyA site is annotated.
 #' @param extend.downstream How far to extend coverage downstream. Default is 500 bp. 
-#' @param extend.downstream How far to extend coverage upstream. Default is 500 bp. 
+#' @param extend.upstream How far to extend coverage upstream. Default is 500 bp. 
 #' @param annotation Default is "transcript". Use "gene" if you only want to see one isoform. 
+#' @param ... Additional parameters passed to \code{\link[Signac]{CoveragePlot}}
+#'
 #' @importFrom utils head tail
 #' @export
 #' @concept visualization
-#' @seealso \code{\link[Signac]{CoveragePlot}}  for additional parameters
+#' @seealso \code{\link[Signac]{CoveragePlot}} for additional parameters
 #' 
-
 PolyACoveragePlot <- function(object, 
                               region.plot = NULL,
                               assay = "polyA", 
@@ -49,6 +50,5 @@ PolyACoveragePlot <- function(object,
   
   CoveragePlot(object, region = region.plot.tmp, assay = assay, extend.downstream = extend.downstream, 
                extend.upstream = extend.upstream, annotation = annotation, ...)
-  
 }
 
