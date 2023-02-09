@@ -83,8 +83,7 @@ obj.list <- SplitObject(pbmc, split.by = "donor")
 obj.list <- lapply(obj.list, FUN = RunAzimuth , reference = "pbmcref")
 pbmc <- merge(obj.list[[1]], obj.list[2:length(obj.list)], merge.dr = "ref.umap")
 
-#not that Azimuth provides higher-resolution annotations with 
-# pbmc$predicted.celltype.l2
+# note that Azimuth provides higher-resolution annotations with pbmc$celltype.l2
 Idents(pbmc) <- pbmc$celltype.l1
 
 library(RColorBrewer)
