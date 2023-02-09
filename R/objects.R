@@ -21,26 +21,22 @@
 #' @exportClass polyAsiteAssay
 #' @concept assay
 #'
-#'
-#'
 polyAsiteAssay <- setClass(
   Class = "polyAsiteAssay",
-  contains = "ChromatinAssay",
-  slots = list(center.scale.data = "matrix")
+  contains = "ChromatinAssay"
 )
 
 
 #' Create polyA object
 #'
-#' Create a \code{\link{polyAsiteAssay}} object from a count matrix or
-#' normalized data matrix. The expected format of the input matrix is features x
+#' Create a \code{\link{polyAsiteAssay}} object from a count matrix.
+#' The expected format of the input matrix is features x
 #' cells. A set of genomic ranges must be supplied along with the matrix, with
 #' the length of the ranges equal to the number of rows in the matrix. If a set
 #' of genomic ranges are not supplied, they will be extracted from the
 #' row names of the matrix.
 #'
 #' @param counts Unnormalized data (raw counts)
-#' @param data Normalized data; if provided, do not pass counts
 #' @param min.cells Include features detected in at least this many cells.
 #' Will subset the counts matrix as well.
 #' To reintroduce excluded features, create a new object with a lower cutoff.
@@ -166,18 +162,15 @@ merge.polyAsiteAssay <- function(x = NULL,
   chromatin.m <- merge(x = chromatin.x, y = chromatin.y, 
                        add.cells.ids = add.cell.ids, ...)
   chromatin.m <- as(object = chromatin.m, Class = 'polyAsiteAssay')
-  
-  # Do center.scale.data slot subsetting
-  #if (dim(x@center.scale.data)[1] >0 ) {
-  #  center.scale <- GetAssayData(x, slot = "center.scale.data" )
-  #  center.scale <- center.scale[features, cells]
-  #  chromatin <- SetAssayData(chromatin, slot = "center.scale.data", new.data = center.scale)
-  #}
   return(chromatin.m)
 }
 
 
 #' Subset a polyA site assay 
+#'
+#' @param x A polyAsiteAssay
+#' @param features Which features to retain
+#' @param cells Which cells to retain
 #' 
 #' @export
 #' @concept objects

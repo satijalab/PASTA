@@ -215,6 +215,9 @@ GetBackgroundDist <- function(object, features, background, gene.names, assay,  
 #'
 #' @param gene.test which gene to use
 #' @param background.dist dataframe containing the isoform ratios for each
+#' @param m.background matrix of background distribution
+#' @param gene.sum sum of count within each gene for each cell
+#' @param ncells number of cells
 #'
 #' @return Returns a list where first element is matrix of expected values for each peak within the genes,
 #' second value is matrix of variance for each peak within the gene
@@ -222,7 +225,13 @@ GetBackgroundDist <- function(object, features, background, gene.names, assay,  
 #' @importFrom MGLM MGLMfit
 #' @concept residuals
 #'
-DirichletMultionmial <- function(gene.test, background.dist, m.background, gene.sum, ncells = ncells) {
+DirichletMultionmial <- function(
+  gene.test,
+  background.dist,
+  m.background,
+  gene.sum,
+  ncells
+) {
   peaks <- background.dist$peak[background.dist$gene == gene.test]
   t <- m.background[rownames(m.background) %in% peaks,]
   t <- t(t)
