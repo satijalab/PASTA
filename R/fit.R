@@ -19,8 +19,8 @@
 #' @param min.variance Sets minimum variance. Default is 0.1.
 #' @param do.center Return the centered residuals. Default is TRUE.
 #' @param do.scale Return the scaled residuals. Default is TRUE.
-#' @param residuals.max Clip residuals above this value. Default is 10. If NULL, then no clipping.
-#' @param residuals.min Clip residuals below this value. Default is -10. If NULL, then no clipping.
+#' @param residuals.max Clip residuals above this value. Default is NULL (no clipping).
+#' @param residuals.min Clip residuals below this value. Default is NULL (no clipping).
 #' @param verbose Print messages.
 #'
 #'

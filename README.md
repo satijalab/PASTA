@@ -16,6 +16,7 @@ We have implemented these methods in an R package PASTA (PolyA Site analysis usi
 To install PASTA, please run:
 
 ```{R}
+#install remotes and BiocManager if necessary 
 if (!requireNamespace("remotes", quietly = TRUE))
     install.packages("remotes")
 if (!requireNamespace("BiocManager", quietly = TRUE))
@@ -24,7 +25,6 @@ if (!requireNamespace("BiocManager", quietly = TRUE))
 #additionally install several Bioconductor dependencies
 BiocManager::install(c("BSgenome.Hsapiens.UCSC.hg38", "EnsDb.Hsapiens.v86", 
                        "rtracklayer","GenomicFeatures","plyranges"))
-
 
 remotes::install_github("satijalab/PASTA")
 ```
@@ -35,6 +35,6 @@ Check out the [PASTA vignette](http://www.satijalab.org/seurat/pasta_vignette.ht
 
 # Links
 
-[Seurat](www.satijalab.org/seurat): R package for the analysis, integration, and exploration of scRNA-seq data
+[Seurat](https://satijalab.org/seurat/): R package for the analysis, integration, and exploration of scRNA-seq data
 
 [CPA-Perturb-seq](link): Preprint describing analytical methods for characterizing APA in single-cell datasets

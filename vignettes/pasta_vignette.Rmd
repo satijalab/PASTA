@@ -48,7 +48,7 @@ library(ggplot2)
 library(EnsDb.Hsapiens.v86)
 ```
 
-The data for this vignette can be found on the following [site](zenodo_link): 
+The data for this vignette can be found on the following [site](https://zenodo.org/record/7617270#.Y-RcwOzMJzU): 
 The files include: 
 
 ```{r set_path, include=FALSE}
