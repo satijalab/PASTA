@@ -48,7 +48,7 @@ library(ggplot2)
 library(EnsDb.Hsapiens.v86)
 ```
 
-The data for this vignette can be found on the following [site](zenodo_link): 
+The data for this vignette can be found on the following [site](https://zenodo.org/record/7617270#.Y-RcwOzMJzU): 
 The files include: 
 
 ```{r set_path, include=FALSE}
@@ -82,8 +82,8 @@ obj.list <- SplitObject(pbmc, split.by = "donor")
 obj.list <- lapply(obj.list, FUN = RunAzimuth , reference = "pbmcref")
 pbmc <- merge(obj.list[[1]], obj.list[2:length(obj.list)], merge.dr = "ref.umap")
 
-#not that Azimuth provides higher-resolution annotations with 
-# pbmc$predicted.celltype.l2
+#note that Azimuth provides higher-resolution annotations with 
+#pbmc$predicted.celltype.l2
 Idents(pbmc) <- pbmc$celltype.l1
 
 library(RColorBrewer)
