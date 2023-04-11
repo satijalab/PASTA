@@ -128,7 +128,8 @@ percentage.usage <- function( object,
   colnames(sum1) <- c("gene", "sum")
   df2 <- merge(df2, sum1, by="gene")
   df2$frac <- df2$counts1/df2$sum
-  df2 <- df2[df2$peak %in% features,]
+  rownames(df2) <- df2$peak
+  df2 <- df2[features,]
   return(as.vector(df2$frac))
 }
 
