@@ -112,17 +112,17 @@ CalcPolyAResiduals <- function(object,
   res <- lapply(genes, DirichletMultionmial, background.dist=background.dist,
                 m.background = m.background, gene.sum=gene.sum,  ncells = ncells)
 
-  ec <- res[[1]]$ec
-  var <- res[[1]]$var
-  for(i in 2:length(res)) {
+  ec <- data.frame(dummy = 1:length(colnames(object)))
+  var <- data.frame(dummy = 1:length(colnames(object)))
+  for(i in 1:length(res)) {
     if (!(is.null(res[[i]]))) {
       ec <- cbind(ec, res[[i]]$ec)
       var <- cbind(var, res[[i]]$var)
     }
   }
 
-  ec <- t(ec)
-  var <- t(var)
+  ec <- t(ec[, -1])
+  var <- t(var[, -1])
   colnames(ec) <- colnames(object)
   colnames(var) <- colnames(object)
 
