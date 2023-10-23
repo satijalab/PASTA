@@ -3,7 +3,7 @@
 #' @param counts.file file containing the counts from polyApipe in .tsv format
 #' @param peaks.file gff file that requires the seqid, start, end, and strand of each peak
 #' @param sep Separators
-#' @param filter.chromosomes If TRUE (default), only include main chromosomes. 
+#' @param filter.chromosomes If TRUE (default), only include main chromosomes.
 #' @param min.features Cell must have at least this many feature to be included.
 #' @param min.cells A feature must be present in at least this manhy cells.
 #' @param verbose Print output.
@@ -19,7 +19,7 @@
 #' @export
 #' @concept preprocessing
 ReadPolyApipe <- function(counts.file, peaks.file = NULL, sep = c(":",",",":"),
-                          filter.chromosomes = TRUE, min.features = NULL, min.cells = NULL , 
+                          filter.chromosomes = TRUE, min.features = NULL, min.cells = NULL ,
                           verbose=TRUE)  {
 
   if (verbose) {
@@ -71,7 +71,7 @@ ReadPolyApipe <- function(counts.file, peaks.file = NULL, sep = c(":",",",":"),
       rownames(counts_matrix) <- the_peaks$newRN[m]
     }
   }
-  
+
   if(!is.null(min.features)){
     rs = rowSums( counts_matrix > 0 )
     del = which(rs < min.features)
@@ -81,7 +81,7 @@ ReadPolyApipe <- function(counts.file, peaks.file = NULL, sep = c(":",",",":"),
       message(paste0("Removed ",length(del)," feature(s) covered in less than ",min.features," cells ..."))
     }
   }
-  
+
   if(!is.null(min.cells)){
     cs = colSums( counts_matrix > 0 )
     del = which(cs < min.cells)
@@ -91,7 +91,7 @@ ReadPolyApipe <- function(counts.file, peaks.file = NULL, sep = c(":",",",":"),
       message(paste0("Removed ",length(del)," cell(s) with less than ",min.cells," features ..."))
     }
   }
-  
+
   if (filter.chromosomes) {
     chr = sapply(rownames(counts_matrix) , FUN = function(j) { strsplit(j,":")[[1]][1]})
     accept = c(paste0("^",c(c(1:23),"X","Y","MT","M")),
@@ -103,11 +103,11 @@ ReadPolyApipe <- function(counts.file, peaks.file = NULL, sep = c(":",",",":"),
       message("Removed ", length(del), " entries falling on scaffolds")
     }
   }
-  
+
   if (verbose) {
   message("Loaded ", nrow(counts_matrix), " x ", ncol(counts_matrix), " feature by cell matrix")
   }
-  
+
   return(counts_matrix)
 }
 
@@ -117,11 +117,11 @@ ReadPolyApipe <- function(counts.file, peaks.file = NULL, sep = c(":",",",":"),
 #' @param object Object containing a polyAsite assay
 #' @param nfeatures Number of features to select as top variable features.
 #' @param gene.names Column in meta features that contains gene names. At most one feature per gene will be selected.
-#' @param selection.method How to calculate polyA residuals. If "residuals" (default), 
-#' will rank all polyA sites by their variance and pick at most 1 polyA site per gene. 
+#' @param selection.method How to calculate polyA residuals. If "residuals" (default),
+#' will rank all polyA sites by their variance and pick at most 1 polyA site per gene.
 #' Otherwise, will use Seurat FindVariableFeatures functions.
 #' @param ... Arguments passed to other methods
-#' 
+#'
 #' @rdname FindVariableFeatures
 #' @importFrom utils head tail
 #' @concept preprocessing
@@ -137,26 +137,26 @@ FindVariableFeatures.polyAsiteAssay <- function(
     ...)
   {
   if (selection.method == "residuals") {
-    
+
     if (dim(GetAssayData(object, slot="scale.data"))[1] == 0)  {
       stop ("No features found in scale.data slot. Run CalcPolyAResiduals prior to FindVariableFeatures.")
     }
-    
+
     if (!(gene.names %in% colnames(object[[]]))) {
-      stop("Gene.names column not found in meta.features, please make sure 
+      stop("Gene.names column not found in meta.features, please make sure
          you are specific gene.names correctly")
     }
-    
+
     var <- data.frame(var = apply(object@scale.data, 1, function(x) var(x[x != 0])))
     var$symbol <- object[[]][rownames(var), gene.names]
-    var <- var[order(var$var, decreasing = TRUE), ] #sort by maximum variance 
+    var <- var[order(var$var, decreasing = TRUE), ] #sort by maximum variance
     var.unique <- var[!duplicated(var$symbol),]
-    
+
     nfeatures <- min(nfeatures, nrow(x = nrow(var.unique)))
-  
+
     VariableFeatures(object) <- head(rownames(var.unique), n=nfeatures)
   } else {
-    assay <- as(object = object[[DefaultAssay(object)]], Class = "ChromatinAssay")
+    assay <- as(object = object, Class = "ChromatinAssay")
     tmp <- Seurat::FindVariableFeatures(assay, nfeatures = nfeatures, selection.method = selection.method, ...)
     VariableFeatures(object) <- VariableFeatures(tmp)
   }
