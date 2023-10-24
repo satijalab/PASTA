@@ -164,4 +164,62 @@ FindVariableFeatures.polyAsiteAssay <- function(
 }
 
 
+#' @rdname ScaleData
+#' @concept preprocessing
+#' @export
+#' @method ScaleData polyAsiteAssay
+#'
+ScaleData.polyAsiteAssay <- function(
+    object,
+    features = NULL,
+    vars.to.regress = NULL,
+    latent.data = NULL,
+    split.by = NULL,
+    model.use = 'linear',
+    use.umi = FALSE,
+    do.scale = TRUE,
+    do.center = TRUE,
+    scale.max = 10,
+    block.size = 1000,
+    min.cells.to.block = 3000,
+    verbose = TRUE,
+    ...
+) {
+  use.umi <- ifelse(test = model.use != 'linear', yes = TRUE, no = use.umi)
+  slot.use <- ifelse(test = use.umi, yes = 'counts', no = 'data')
+  features <- features %||% VariableFeatures(object)
+  if (length(x = features) == 0) {
+    features <- rownames(x = GetAssayData(object = object, slot = slot.use))
+  }
+  scale <- ScaleData(
+    object = GetAssayData(object = object, slot = slot.use),
+    features = features,
+    vars.to.regress = vars.to.regress,
+    latent.data = latent.data,
+    split.by = split.by,
+    model.use = model.use,
+    use.umi = use.umi,
+    do.scale = do.scale,
+    do.center = do.center,
+    scale.max = scale.max,
+    block.size = block.size,
+    min.cells.to.block = min.cells.to.block,
+    verbose = verbose,
+    ...
+  )
+  names <- rownames(x = GetAssayData(object = object, slot = slot.use))
+  new.features <- na.omit(object = match(
+    x = names,
+    table = rownames(x = scale)
+  ))
+  scale.order <- scale[new.features, Cells(object), drop = FALSE]
+  object <- SetAssayData(
+    object = object,
+    slot = 'scale.data',
+    new.data = scale.order
+  )
+  return(object)
+}
+
+
 
