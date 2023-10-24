@@ -6,7 +6,7 @@
 #' @param polyAdb.file Location to find polyAdbv3 file
 #' @param max.dist Keep sites within this distance to a polyAdbv3 site. Default is 50 nucleotides.
 #'
-#' @importFrom GenomicRanges makeGRangesFromDataFrame queryHits
+#' @importFrom GenomicRanges makeGRangesFromDataFrame
 #' @importFrom IRanges distanceToNearest trim
 #' @importFrom plyranges anchor_3p mutate
 #' @importFrom GenomeInfoDb seqlevelsStyle
