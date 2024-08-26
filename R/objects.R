@@ -161,8 +161,51 @@ merge.polyAsiteAssay <- function(x = NULL,
   }
   chromatin.m <- merge(x = chromatin.x, y = chromatin.y, 
                        add.cells.ids = add.cell.ids, ...)
-  chromatin.m <- as(object = chromatin.m, Class = 'polyAsiteAssay')
-  return(chromatin.m)
+  polyA.m <- as(object = chromatin.m, Class = 'polyAsiteAssay')
+
+  #add back in meta features
+  meta.x <- data.frame(strand = chromatin.x@meta.features$strand)
+  meta.x$peak.tmp <- rownames(chromatin.x$counts)
+  if (is.list(chromatin.y)) {
+    meta.y <- lapply(chromatin.y, function(chromatin) {
+      df <- data.frame(strand = chromatin@meta.features$strand)
+      df$peak.tmp <- rownames(chromatin$counts)
+      return(df)
+    })
+    meta.y <- do.call(rbind, meta.y)
+    meta.y <- unique(meta.y)
+  } else {
+    meta.y <- data.frame(strand = chromatin.y@meta.features$strand)
+    meta.y$peak.tmp <- rownames(chromatin.y$counts)
+  }
+
+  meta.merge <- merge(meta.x, meta.y, by="peak.tmp", all=TRUE)
+  if (any(!is.na(meta.merge$strand.x) & !is.na(meta.merge$strand.y) &
+           meta.merge$strand.x != meta.merge$strand.y)) {
+     warning("Mismatch in strand values for the same feature when merging,
+          converting strand to * for that feature")
+  }
+
+
+  meta.merge$strand <- ifelse(is.na(meta.merge$strand.x), as.character(meta.merge$strand.y),
+                              as.character(meta.merge$strand.x))
+  meta.merge$strand[meta.merge$strand.x != meta.merge$strand.y] <- "*"
+  meta.merge <- meta.merge[,c("peak.tmp", "strand")]
+
+  #check for duplicates
+  duplicates <- duplicated(meta.merge$peak.tmp) | duplicated(meta.merge$peak.tmp, fromLast = TRUE)
+  meta.merge$strand[duplicates] <- "*"
+  meta.merge <- unique(meta.merge)
+
+  #now add to merged object
+  meta <- data.frame(peak.tmp = rownames(chromatin.m$counts))
+  meta$strand <- meta.merge$strand[match(meta$peak.tmp, meta.merge$peak.tmp)]
+  meta$strand[is.na(meta$strand)] <- "*"
+  rownames(meta) <- meta$peak.tmp
+  meta$peak.tmp <- NULL
+  BiocGenerics::strand(polyA.m@ranges) <- meta$strand
+  polyA.m <- AddMetaData(polyA.m, meta)
+  return(polyA.m)
 }
 
 
